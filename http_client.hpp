@@ -12,13 +12,21 @@
 #include "shttpparameters.h"
 #include "spayload.h"
 #include "shttpparameters.h"
-#include "scoreapplication.h"
 #include "urilite.h"
 //------------------------------------------------------------------------------
 
 // Report a failure
 namespace Ui
 {
+     inline std::string chunkify(std::string_view s)
+        {
+            std::ostringstream ss;
+            ss << std::hex << s.size();
+            auto result = boost::to_upper_copy(ss.str()) + "\r\n";
+            result.append(s.begin(), s.end());
+            result += "\r\n";
+            return result;
+        }
     inline std::string operator+(const std::string& first, boost::string_view second){
         return first + std::string{second.data(),second.length()};
     }
@@ -29,7 +37,7 @@ namespace Ui
     inline shttp_fail(beast::error_code ec, char const *what)
     {
         std::string msg=what +std::string(": ")+ ec.message()+ "\n category: "+ ec.category().name();
-        SDEBUG_AT_LEVEL(0) << msg.c_str();
+        std::cout << msg.c_str();
         return msg;
     }
     class shttp_client_ssl_session;

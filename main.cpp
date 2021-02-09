@@ -1,0 +1,89 @@
+#include "http_client.hpp"
+#include <regex>
+namespace {
+    template <typename Func>
+    std::string replace(std::string s,std::regex  reg,Func func){
+        std::smatch match;
+        bool stop=false;
+        while (!stop && std::regex_search(s, match, reg)) {
+            std::string param=match.str(); 
+            std::string formatter="$`";
+            formatter += func(boost::string_view{param.c_str()+1,param.length()-2},stop);
+            formatter += "$'";
+            s = match.format(
+                formatter); 
+        }
+        return s;
+    }
+    std::string getLanguage(){
+        constexpr std::array <const char*,38> lang{
+            "en",
+        };
+        return lang[0];
+    }
+    std::string getCountry(){
+        constexpr std::array <const char*,55> country{
+            "BR",
+        };
+        return country[0];
+    }
+    std::string getModel(){
+        return "HP%20OfficeJet%20Pro%208020%20series";
+    }
+    std::string getStatus(){
+        return "success";
+    }
+    std::string getError(){
+        return "failed";
+    }
+    std::string getAuthToken(std::string name)
+        {
+            return std::string{"Basic QVFBQUFBRnpWaHBmaVFBQUFBRTRXOW5ROjNYYnN5WSs3dkZYd2VabEtmWDJsZjJrSmZ3K2lUQlBDNkd2ZW5RWDc2blk9"};
+            
+        }
+    std::string substituteParams(std::string urlp){
+        
+        std::regex pattern(R"((\{([^\}]|\{\})*\}))");
+        auto repalced = replace(urlp,pattern,[=](auto truncparam,bool& stop){
+                if(truncparam=="$lang"){
+                    return getLanguage();
+                }
+                if(truncparam=="$region"){
+                    return getCountry();
+                }
+                if(truncparam=="$model"){
+                    return getModel();
+                }
+                if(truncparam=="$status"){
+                    return getStatus();
+                }
+                 if(truncparam=="$error"){
+                    stop=true;
+                    return getError();
+                }
+                // if(truncparam[0]=='#'){
+                //     return get_param(truncparam.substr(1));
+                // }
+
+                // return get_param(truncparam);
+               
+                return std::string{truncparam.data(),truncparam.length()};
+            });
+        // SDEBUG()<<"URL: "<< repalced;
+        return repalced;
+    };
+}
+int main()
+{
+   std::string url("http://sipserver.psr.rd.hpicorp.net/main/xmltestCases_v3.1/conformance_v3.1.xml");
+//    std::string url("https://pie-crs-pod1-appgate-gen2-podlb-386153685.us-east-1.elb.amazonaws.com:443/shortcut/v1/cui?current=shortcut&lang={$lang}&amp;region={$region}&amp;model={$model}");
+   urilite::uri remotepath =urilite::uri::parse(substituteParams(url));
+   Ui::http_get(remotepath,http::verb::get,
+                        Ui::HttpHeader{{std::string{"Authorization"},getAuthToken("svc_sbs")}},
+                        Ui::ContentType{"text/plain"},[=](beast::error_code ec,std::string data){
+                         std::cout << "call_app_handler: ec=" << ec.message() << ", msg=" << data<< std::endl;
+                  
+                        });
+    while(true);//wait indefenitely
+    return 0;
+}
