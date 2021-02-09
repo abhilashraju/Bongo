@@ -72,13 +72,17 @@ namespace {
         // SDEBUG()<<"URL: "<< repalced;
         return repalced;
     };
+    std::string create_body(){
+        return "session_id=03bf261c-ed73-4b76-b9c7-dc32dfd152e3&session_name=test.younus@gmail.com&shortcut_id=601d359fe16cd70f8f7e8daf";
+    }
 }
 int main()
 {
-   std::string url("http://sipserver.psr.rd.hpicorp.net/main/xmltestCases_v3.1/conformance_v3.1.xml");
+//    std::string url("http://sipserver.psr.rd.hpicorp.net/main/xmltestCases_v3.1/conformance_v3.1.xml");
 //    std::string url("https://pie-crs-pod1-appgate-gen2-podlb-386153685.us-east-1.elb.amazonaws.com:443/shortcut/v1/cui?current=shortcut&lang={$lang}&amp;region={$region}&amp;model={$model}");
+   std::string url("https://pie-crs-pod1-appgate-gen2-podlb-386153685.us-east-1.elb.amazonaws.com:443/shortcut/v1/cui?current=shortcuts_list&lang=en&region=CR&model=HP%20OfficeJet%20Pro%208020%20series");
    urilite::uri remotepath =urilite::uri::parse(substituteParams(url));
-   Ui::http_get(remotepath,http::verb::get,
+   Ui::http_get(remotepath,http::verb::post,Ui::Body(create_body()),
                         Ui::HttpHeader{{std::string{"Authorization"},getAuthToken("svc_sbs")}},
                         Ui::ContentType{"text/plain"},[=](beast::error_code ec,std::string data){
                          std::cout << "call_app_handler: ec=" << ec.message() << ", msg=" << data<< std::endl;
