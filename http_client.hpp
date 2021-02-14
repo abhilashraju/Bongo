@@ -338,20 +338,20 @@ namespace Ui
                 return call_app_handler(ec, "write");
 
             // Receive the HTTP response
-            // sync_read(stream_,buffer_,[&](){
-            //     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-            //     // Gracefully close the stream
-            //     stream_.async_shutdown(
-            //         beast::bind_front_handler(
-            //             &shttp_client_ssl_session::on_shutdown,
-            //             shared_from_this()));
-            // });
+            sync_read(stream_,buffer_,[&](){
+                beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+                // Gracefully close the stream
+                stream_.async_shutdown(
+                    beast::bind_front_handler(
+                        &shttp_client_ssl_session::on_shutdown,
+                        shared_from_this()));
+            });
             
 
-            http::async_read(stream_, buffer_, res_,
-                             beast::bind_front_handler(
-                                 &shttp_client_ssl_session::on_read,
-                                 shared_from_this()));
+            // http::async_read(stream_, buffer_, res_,
+            //                  beast::bind_front_handler(
+            //                      &shttp_client_ssl_session::on_read,
+            //                      shared_from_this()));
         }
 
         void

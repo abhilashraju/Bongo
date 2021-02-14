@@ -67,8 +67,10 @@ main()
 {
     net::io_context ioc;
     beast::test::stream s(ioc);
-    s.append("HTTP/1.1 500 \r\nDate: Sun, 07 Feb 2021 05:56:28 GMT\r\nContent-Type: application/json;charset=UTF-8\r\nConnection: close\r\n\r\n");
-    s.append(chunkify("{\"timestamp\":\"2021-02-07T05:22:53.463+0000\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"App has reached an unexpected condition\",\"path\":\"/shortcut/v1/cui\"}"));
+    s.append("HTTP/1.1 500 \r\nDate: Sun, 14 Feb 2021 05:33:59 GMT\r\nContent-Type: application/json;charset=UTF-8\r\nConnection: close\r\n\r\n{\"timestamp\":\"2021-02-14T05:33:59.557+0000\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"session id not found\",\"path\":\"/shortcut/v1/cui\"}");
+    
+    // s.append("HTTP/1.1 200 \r\nDate: Sun, 07 Feb 2021 05:56:28 GMT\r\nContent-Type: application/json;charset=UTF-8\r\nConnection: close\r\n\r\n");
+    // s.append(chunkify("{\"timestamp\":\"2021-02-07T05:22:53.463+0000\",\"status\":500,\"error\":\"Internal Server Error\",\"message\":\"App has reached an unexpected condition\",\"path\":\"/shortcut/v1/cui\"}"));
 //    s.append("HTTP/1.1 200 \r\n"
 //              "Date: Thu, 04 Feb 2021 04:41:45 GMT\r\n"
 //              "Content-Type: application/xml;charset=UTF-8\r\n"
@@ -97,8 +99,8 @@ main()
 //         <link logical="ok" labelText="Done" httpMethod="POST" href="control:prev"/>
 //     </screen>
 // </cloudUiDescription>)"));
-    s.append(chunkify(""));
-
+    // s.append(chunkify(""));
+    s.close_remote();
     beast::flat_buffer buf;
     sync_read(s, buf, []() { std::cout << "all done\n"; });
     return 0;
