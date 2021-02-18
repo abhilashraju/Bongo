@@ -56,6 +56,13 @@ namespace Ui
             static snetwork_scheduler sch;
             return sch;
         }
+        ~snetwork_scheduler(){
+            stop_network_schduler();
+        }
+        void stop_network_schduler(){
+            ioc.stop();
+            t.join();
+        }
     };
     using APP_READ_HANDLER = std::function<void(beast::error_code ec, std::string)>;
     // Performs an HTTP GET and prints the response
@@ -211,7 +218,7 @@ namespace Ui
                 if(ec == http::error::need_buffer)
                     ec = {};
                 if(ec)
-                    return call_app_handler(ec,"read: body");;
+                    return call_app_handler(ec,os.str() + "read: body");;
                 os.write(buf, sizeof(buf) - res0.get().body().size);
             }
             // http::response_parser<http::string_body> res{std::move(res0)};
@@ -261,22 +268,27 @@ namespace Ui
         void
         run()
         {
-            // Set SNI Hostname (many hosts need this to handshake successfully)
-            if (!SSL_set_tlsext_host_name(stream_.native_handle(),  url_.c_str()))
-            {
-                beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
-                // std::cerr << ec.message() << "\n";
-                call_app_handler(ec, std::string());
-                return;
-            }
-            prepare_req();
-            // Look up the domain name
-            resolver_.async_resolve(
-                url_.c_str(),
-                port_.c_str(),
-                beast::bind_front_handler(
-                    &shttp_client_ssl_session::on_resolve,
-                    shared_from_this()));
+            net::post(
+                    stream_.get_executor(),
+                    [self = shared_from_this()]() mutable {
+                        // Set SNI Hostname (many hosts need this to handshake successfully)
+                        if (!SSL_set_tlsext_host_name(self->stream_.native_handle(),  self->url_.c_str()))
+                        {
+                            beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
+                            // std::cerr << ec.message() << "\n";
+                            self->call_app_handler(ec, std::string());
+                            return;
+                        }
+                        self->prepare_req();
+                        // Look up the domain name
+                        self->resolver_.async_resolve(
+                            self->url_.c_str(),
+                            self->port_.c_str(),
+                            beast::bind_front_handler(
+                                &shttp_client_ssl_session::on_resolve,
+                                self->shared_from_this()));
+                    }
+            );
         }
 
         void
@@ -421,14 +433,19 @@ private:
     run()
     {
        
-        prepare_req();
-        // Look up the domain name
-        resolver_.async_resolve(
-            url_.c_str(),
-            port_.c_str(),
-            beast::bind_front_handler(
-                &shttp_client_session::on_resolve,
-                shared_from_this()));
+       net::post(
+                    stream_.get_executor(),
+                    [self = shared_from_this()]() mutable {
+                        self->prepare_req();
+                        // Look up the domain name
+                        self->resolver_.async_resolve(
+                            self->url_.c_str(),
+                            self->port_.c_str(),
+                            beast::bind_front_handler(
+                                &shttp_client_session::on_resolve,
+                                self->shared_from_this()));
+                    }
+            );
     }
 
     void
@@ -548,6 +565,7 @@ template<typename SESSION,typename HEAD,typename... TAIL>
         http_get_impl(session,std::forward<ARGS>(args)...);
         session->get();
     }
+
     template<typename... ARGS>
     auto http_get( urilite::uri remotepath, ARGS&&... args){
         auto qstr=remotepath.query_string();
@@ -557,6 +575,8 @@ template<typename SESSION,typename HEAD,typename... TAIL>
         }
         http_get(Ui::Url{remotepath.host()},Ui::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
     }
+
+    
     
 }
 template<typename Handler>
