@@ -2,7 +2,7 @@
 #include <boost/beast.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
 #include <iostream>
-
+#include <string_view>
 namespace net = boost::asio;
 namespace beast = boost::beast;
 namespace http = beast::http;
@@ -10,7 +10,7 @@ using error_code = boost::system::error_code;
 
 namespace {
     std::string
-    chunkify(std::string_view s)
+    chunkify(boost::string_view s)
     {
         std::ostringstream ss;
         ss << std::hex << s.size();
