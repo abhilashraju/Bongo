@@ -78,13 +78,14 @@ namespace {
 }
 int main()
 {
+    using namespace std::literals::chrono_literals;
 //    std::string url("http://sipserver.psr.rd.hpicorp.net/main/xmltestCases_v3.1/conformance_v3.1.xml");
 //    std::string url("https://pie-crs-pod1-appgate-gen2-podlb-386153685.us-east-1.elb.amazonaws.com:443/shortcut/v1/cui?current=shortcut&lang={$lang}&amp;region={$region}&amp;model={$model}");
    std::string url("https://pie-crs-pod1-appgate-gen2-podlb-386153685.us-east-1.elb.amazonaws.com:443/shortcut/v1/cui?current=shortcuts_list&lang=en&region=CR&model=HP%20OfficeJet%20Pro%208020%20series");
    http::verb verb_ = http::verb::post;
    do {
         urilite::uri remotepath =urilite::uri::parse(substituteParams(url));
-        Ui::http_get(remotepath,verb_,Ui::Body(create_body()),
+        Ui::Get()(remotepath,verb_,Ui::Body(create_body()),
                                 Ui::HttpHeader{{std::string{"Authorization"},getAuthToken("svc_sbs")}},
                                 Ui::ContentType{"text/plain"},[=](beast::error_code ec,std::string data){
                                 std::cout << "call_app_handler: ec=" << ec.message() << ", msg=" << data<< std::endl;

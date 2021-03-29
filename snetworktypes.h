@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <map>
 #include <numeric>
+#include <chrono>
+#include "snetworktimeout.h"
 namespace Ui {
 
 template <class T>
@@ -162,4 +164,66 @@ class UserAgent : public StringHolder<UserAgent> {
     UserAgent(const std::initializer_list<std::string> args) : StringHolder<UserAgent>(args) {}
     ~UserAgent() override = default;
 };
+class MaxRedirects {
+  public:
+    explicit MaxRedirects(const std::int32_t number_of_redirects)
+            : number_of_redirects(number_of_redirects) {}
+
+    std::int32_t number_of_redirects;
+};
+
+class LowSpeed {
+  public:
+    LowSpeed(const std::int32_t limit, const std::int32_t time) : limit(limit), time(time) {}
+
+    std::int32_t limit;
+    std::int32_t time;
+};
+class LimitRate {
+  public:
+    LimitRate(const std::int64_t downrate, const std::int64_t uprate)
+            : downrate(downrate), uprate(uprate) {}
+
+    std::int64_t downrate = 0;
+    std::int64_t uprate = 0;
+};
+
+class Verbose {
+  public:
+    Verbose() = default;
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    Verbose(const bool verbose) : verbose{verbose} {}
+
+    bool verbose = true;
+};
+class UnixSocket {
+  public:
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    UnixSocket(std::string&& unix_socket) : unix_socket_(std::move(unix_socket)) {}
+
+    const char* GetUnixSocketString() const noexcept;
+
+  private:
+    const std::string unix_socket_;
+};
+// #if LIBCURL_VERSION_NUM >= 0x073D00
+class Bearer {
+  public:
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    Bearer(const std::string& token) : token_string_{token} {}
+    // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
+    Bearer(std::string&& token) : token_string_{std::move(token)} {}
+    Bearer(const Bearer& other) = default;
+    Bearer(Bearer&& old) noexcept = default;
+    virtual ~Bearer() noexcept = default;
+
+    Bearer& operator=(Bearer&& old) noexcept = default;
+    Bearer& operator=(const Bearer& other) = default;
+
+    virtual const char* GetToken() const noexcept;
+
+  protected:
+    std::string token_string_;
+};
+// #endif
 } // namespace Ui

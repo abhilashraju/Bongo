@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 namespace Ui {
 
@@ -18,6 +19,11 @@ class Authentication {
 class Digest : public Authentication {
   public:
     Digest(const std::string& username, const std::string& password)
+            : Authentication{username, password} {}
+};
+class NTLM : public Authentication {
+  public:
+    NTLM(const std::string& username, const std::string& password)
             : Authentication{username, password} {}
 };
 } // namespace cpr

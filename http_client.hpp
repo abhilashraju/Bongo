@@ -13,20 +13,13 @@
 #include "spayload.h"
 #include "shttpparameters.h"
 #include "urilite.h"
+#include "scurlclient.hpp"
+
 //------------------------------------------------------------------------------
 
 // Report a failure
 namespace Ui
 {
-     inline std::string chunkify(boost::string_view s)
-        {
-            std::ostringstream ss;
-            ss << std::hex << s.size();
-            auto result = boost::to_upper_copy(ss.str()) + "\r\n";
-            result.append(s.begin(), s.end());
-            result += "\r\n";
-            return result;
-        }
     inline std::string operator+(const std::string& first, boost::string_view second){
         return first + std::string{second.data(),second.length()};
     }
@@ -55,13 +48,6 @@ namespace Ui
         {
             static snetwork_scheduler sch;
             return sch;
-        }
-        ~snetwork_scheduler(){
-            stop_network_schduler();
-        }
-        void stop_network_schduler(){
-            ioc.stop();
-            t.join();
         }
     };
     using APP_READ_HANDLER = std::function<void(beast::error_code ec, std::string)>;
@@ -218,7 +204,7 @@ namespace Ui
                 if(ec == http::error::need_buffer)
                     ec = {};
                 if(ec)
-                    return call_app_handler(ec,os.str() + "read: body");;
+                    return call_app_handler(ec,"read: body");;
                 os.write(buf, sizeof(buf) - res0.get().body().size);
             }
             // http::response_parser<http::string_body> res{std::move(res0)};
@@ -252,7 +238,7 @@ namespace Ui
     public:
         explicit shttp_client_ssl_session(
             net::io_context& ioc,
-            ssl::context &ctx)
+            boost::asio::ssl::context &ctx)
             : shttp_client_session_base(ioc), stream_(net::make_strand(ioc), ctx)
         {
            port_=Port("443");
@@ -289,6 +275,7 @@ namespace Ui
                                 self->shared_from_this()));
                     }
             );
+            
         }
 
         void
@@ -318,7 +305,7 @@ namespace Ui
 
             // Perform the SSL handshake
             stream_.async_handshake(
-                ssl::stream_base::client,
+                boost::asio::ssl::stream_base::client,
                 beast::bind_front_handler(
                     &shttp_client_ssl_session::on_handshake,
                     shared_from_this()));
@@ -350,20 +337,20 @@ namespace Ui
                 return call_app_handler(ec, "write");
 
             // Receive the HTTP response
-            // sync_read(stream_,buffer_,[&](){
-            //     beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
-            //     // Gracefully close the stream
-            //     stream_.async_shutdown(
-            //         beast::bind_front_handler(
-            //             &shttp_client_ssl_session::on_shutdown,
-            //             shared_from_this()));
-            // });
+            sync_read(stream_,buffer_,[&](){
+                beast::get_lowest_layer(stream_).expires_after(std::chrono::seconds(30));
+                // Gracefully close the stream
+                stream_.async_shutdown(
+                    beast::bind_front_handler(
+                        &shttp_client_ssl_session::on_shutdown,
+                        shared_from_this()));
+            });
             
 
-            http::async_read(stream_, buffer_, res_,
-                             beast::bind_front_handler(
-                                 &shttp_client_ssl_session::on_read,
-                                 shared_from_this()));
+            // http::async_read(stream_, buffer_, res_,
+            //                  beast::bind_front_handler(
+            //                      &shttp_client_ssl_session::on_read,
+            //                      shared_from_this()));
         }
 
         void
@@ -398,14 +385,16 @@ namespace Ui
         void
         on_shutdown(beast::error_code ec)
         {
-            if (ec == net::error::eof)
-            {
-               ec = {};
-            }
-            if (ec)
-                return app_handler(ec, "shutdown");
+            //assumes shut down completed safely.
+            // if (ec == net::error::eof)
+            // {
+            //    ec = {};
+            // }
+            // if (ec)
+            //     return app_handler(ec, "shutdown");
 
-            // If we get here then the connection is closed gracefully
+
+            
         }
 
       
@@ -432,8 +421,7 @@ private:
     void
     run()
     {
-       
-       net::post(
+        net::post(
                     stream_.get_executor(),
                     [self = shared_from_this()]() mutable {
                         self->prepare_req();
@@ -446,6 +434,7 @@ private:
                                 self->shared_from_this()));
                     }
             );
+        
     }
 
     void
@@ -531,8 +520,136 @@ private:
         // If we get here then the connection is closed gracefully
     }
 };
-
-
+// Overload the global make_error_code() free function with our
+// custom enum. It will be found via ADL by the compiler if needed.
+inline boost::system::error_code make_error_code(Ui::ErrorCode& e)
+{
+    return {static_cast<int>(e), ConversionErrc_category()};
+}
+class shttp_curl_session:public std::enable_shared_from_this<shttp_curl_session>
+{
+    
+    SCurlSession curl_session_;
+    net::io_context& ioc_;
+    APP_READ_HANDLER app_handler;
+    Port port_{"80"};
+    std::string vers_{"1.0"};
+    Target target_{"/"};
+    ContentType cont_type_{"text/plain"};
+    http::verb verb_{http::verb::get};
+    public:
+    shttp_curl_session(net::io_context& ctx):ioc_(ctx){};
+    void call_app_handler(beast::error_code ec, std::string data)
+    {
+        app_handler(std::move(ec),std::move(data));
+        
+    }
+    void SetOption(const Url& url)
+    {
+       curl_session_.SetUrl(url);
+    }
+    void SetOption(const Parameters& parameters)
+    {
+       curl_session_.SetParameters(parameters);
+    }
+    void SetOption(Parameters&& parameters)
+    {
+        curl_session_.SetParameters(std::move(parameters));
+    }
+    void SetOption(const HttpHeader& header)
+    {
+        curl_session_.SetHeader(header);
+    }
+    void SetOption(const Timeout& timeout){curl_session_.SetTimeout(timeout);}
+    void SetOption(const ConnectTimeout& timeout){curl_session_.SetConnectTimeout(timeout);}
+    void SetOption(const Authentication& auth)
+    {
+        curl_session_.SetAuth(auth);
+    }
+    void SetOption(const Digest& auth){curl_session_.SetDigest(auth);}
+    void SetOption(const UserAgent& ua){curl_session_.SetUserAgent(ua);}
+    void SetOption(Payload&& payload)
+    {
+        curl_session_.SetPayload(std::move(payload));
+        
+    }
+    void SetOption(const Payload& payload)
+    {
+        curl_session_.SetPayload(payload);
+    }
+    void SetOption(Body&& b)
+    {
+        curl_session_.SetBody(std::move(b));
+    }
+    void SetOption(const Body& b)
+    {
+        curl_session_.SetBody(b);
+    }
+    void SetOption(const ContentType& t){
+        cont_type_=t;
+    }
+    void SetOption(ContentType&& t){
+        cont_type_=std::move(t);
+    }
+    void SetOption(APP_READ_HANDLER handler)
+    {
+        app_handler=std::move(handler);
+    }
+    void SetOption(Ui::Port port)
+    {
+        port_=std::move(port);
+    }
+    void SetOption(Ui::Target t)
+    {
+        target_=std::move(t);
+    }
+    void SetOption(http::verb v)
+    {
+        verb_=v;
+    }
+    void SetOption(const VerifySsl& verify)
+    {
+        curl_session_.SetVerifySsl(verify);
+    }
+    // void SetOption(const LimitRate& limit_rate);
+    void SetOption(Proxies&& proxies){ curl_session_.SetProxies(std::move(proxies));}
+    void SetOption(const Proxies& proxies){curl_session_.SetProxies(proxies); }
+    // void SetOption(Multipart&& multipart);
+    // void SetOption(const Multipart& multipart);
+    // void SetOption(const NTLM& auth);
+    // void SetOption(const bool& redirect);
+    // void SetOption(const MaxRedirects& max_redirects);
+    // void SetOption(const Cookies& cookies);
+    void get()
+    {
+        prepare_req();
+        net::post(net::make_strand(ioc_),
+                    [self = shared_from_this()]() mutable{
+                        Response response=self->curl_session_.Get();
+                        beast::error_code ec=response.error.code;
+                        self->call_app_handler(ec,response.text);
+                    });
+      
+    }
+    void post()
+    {
+        prepare_req();
+        net::post(net::make_strand(ioc_),
+                    [self = shared_from_this()]() mutable{
+                        Response response=self->curl_session_.Post();
+                        beast::error_code ec=response.error.code;
+                        self->call_app_handler(ec,response.text);
+                    });
+      
+    }
+    void prepare_req()
+    {
+           
+    }
+    
+   
+    
+};
 
 //------------------------------------------------------------------------------
 template<typename SESSION,typename HEAD,typename... TAIL>
@@ -556,18 +673,17 @@ template<typename SESSION,typename HEAD,typename... TAIL>
     template<typename... ARGS>
     auto http_s_get(ARGS&&... args){
         // The SSL context is required, and holds certificates
-        ssl::context ctx{ssl::context::tlsv12_client};
+        boost::asio::ssl::context ctx{boost::asio::ssl::context::tlsv12_client};
         // This holds the root certificate used for verification
         load_root_certificates(ctx);
         // Verify the remote server's certificate
-        ctx.set_verify_mode(ssl::verify_peer);
+        ctx.set_verify_mode(boost::asio::ssl::verify_peer);
         auto session=std::make_shared<shttp_client_ssl_session>(snetwork_scheduler::instance().ioc,ctx);
         http_get_impl(session,std::forward<ARGS>(args)...);
         session->get();
     }
-
     template<typename... ARGS>
-    auto http_get( urilite::uri remotepath, ARGS&&... args){
+    auto http_get( const urilite::uri& remotepath, ARGS&&... args){
         auto qstr=remotepath.query_string();
         auto targ= qstr.empty() ? Ui::Target{remotepath.path()}:Ui::Target{remotepath.path()+"?"+remotepath.query_string()};
         if(remotepath.secure()){
@@ -575,15 +691,113 @@ template<typename SESSION,typename HEAD,typename... TAIL>
         }
         http_get(Ui::Url{remotepath.host()},Ui::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
     }
+    inline auto update_query(const urilite::uri& remotepath){
+        auto url = remotepath.host()+":"+std::to_string(remotepath.port())+remotepath.path();
+        auto qstr=remotepath.query_string();
+        url =qstr.empty() ? url : url+"?"+qstr;
+        if(!boost::string_view(url).starts_with("http")){
+            url =(remotepath.secure() ?"https://":"http://")+url;
+        }
+        return url;
+    }
+    template<typename... ARGS>
+    auto http_curl_get( const urilite::uri& remotepath, ARGS&&... args){
+        auto url = update_query(remotepath);
+        auto session=std::make_shared<shttp_curl_session>(snetwork_scheduler::instance().ioc);
+        http_get_impl(session,Ui::VerifySsl(false),Ui::Url(url),std::forward<ARGS>(args)...);
+        session->get();
+    }
+    template<typename... ARGS>
+    auto http_curl_post( const urilite::uri& remotepath, ARGS&&... args){
+        auto url = update_query(remotepath);
+        auto session=std::make_shared<shttp_curl_session>(snetwork_scheduler::instance().ioc);
+        http_get_impl(session,Ui::VerifySsl(false),Ui::Url(url),std::forward<ARGS>(args)...);
+        session->post();
+    }
+     template<typename Derived>
+     struct Http_base{
+         template<typename... ARGS>
+         std::string handleSync(const urilite::uri& remotepath,beast::error_code& ec,ARGS&&... args)const{
+             std::packaged_task<std::pair<beast::error_code,std::string>(   beast::error_code,std::string)> task([&](beast::error_code ec, std::string data) {
 
+                 return std::pair<beast::error_code,std::string>{ec,std::move(data)};
+             });
+             auto fut = task.get_future();
+            self().operator()(remotepath,
+                              [&](beast::error_code e,std::string data)mutable{task(e,data);}
+                              ,std::forward<ARGS>(args)...);
+             auto res= fut.get();
+             ec=res.first;
+             return res.second;
+//             return "";
+         }
+         const Derived& self()const {
+             return static_cast<const Derived&>(*this);
+         }
+         template<typename... ARGS>
+         auto operator()(beast::error_code& ec,const urilite::uri& remotepath,ARGS&&... args)const{
+             return handleSync(remotepath,ec,std::forward<ARGS>(args)...);
+         }
+
+     };
+    template<bool b>
+    struct Http_Get:Http_base<Http_Get<b>>
+    {
+        template<typename... ARGS>
+        auto operator()(const urilite::uri& remotepath,ARGS&&... args)const{
+            return http_get(remotepath,std::forward<ARGS>(args)...);
+        }
+        template<typename... ARGS>
+        auto operator()(beast::error_code& ec,const urilite::uri& remotepath,ARGS&&... args)const{
+             return handleSync(remotepath,ec,std::forward<ARGS>(args)...);
+        }
+    };
+    template<>
+    struct Http_Get<true>:Http_base<Http_Get<true>>
+    {
+        template<typename... ARGS>
+        auto operator()(const urilite::uri& remotepath,ARGS&&... args)const{
+            return http_curl_get(remotepath,std::forward<ARGS>(args)...);
+        }
+        template<typename... ARGS>
+        auto operator()(beast::error_code& ec,const urilite::uri& remotepath,ARGS&&... args)const{
+             return handleSync(remotepath,ec,std::forward<ARGS>(args)...);
+        }
+
+    };
+    template<bool b>
+    struct Http_Post:Http_base<Http_Post<b>>
+    {
+        template<typename... ARGS>
+        auto operator()(const urilite::uri& remotepath,ARGS&&... args)const{
+            return http_get(remotepath,http::verb::post,std::forward<ARGS>(args)...);
+        }
+        template<typename... ARGS>
+        auto operator()(beast::error_code& ec,const urilite::uri& remotepath,ARGS&&... args)const{
+            return handleSync(remotepath,ec,std::forward<ARGS>(args)...);
+        }
+    };
+    template<>
+    struct Http_Post<true>:Http_base<Http_Post<true>>
+    {
+        template<typename... ARGS>
+        auto operator()(const urilite::uri& remotepath,ARGS&&... args)const{
+            return http_curl_post(remotepath,std::forward<ARGS>(args)...);
+        }
+        template<typename... ARGS>
+        auto operator()(beast::error_code& ec,const urilite::uri& remotepath,ARGS&&... args)const{
+             return handleSync(remotepath,ec,std::forward<ARGS>(args)...);
+        }
+
+    };
+    using Get = Http_Get<false>;
+    using Post = Http_Post<false>;
     
     
 }
 template<typename Handler>
 inline auto make_ui_handler(Handler handler){
    return [handler=std::move(handler)](beast::error_code ec, std::string data){
-            postandExcuteHandler([handler=std::move(handler),ec=std::move(ec),data=std::move(data)](){
                 handler(std::move(ec),std::move(data));
-            });
         };
 }

@@ -1,3 +1,4 @@
+#pragma once
 #include <utility>
 #include "snetworktypes.h"
 
@@ -32,6 +33,10 @@ namespace Ui{
             }
             std::string escaped = holder(p.second);
             content += p.first + "=" + escaped;
+        }
+        template<typename CutomValidator>
+        std::string GetContent(const CutomValidator& holder) const{
+            return content;
         }
         std::string content;
     };

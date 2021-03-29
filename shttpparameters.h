@@ -47,6 +47,10 @@ namespace Ui{
                 content += escapedKey + "=" + escapedValue;
             }
         }
+        template<typename CutomValidator>
+        std::string GetContent(const CutomValidator& holder) const{
+            return content;
+        }
         std::string content;
     };
     using Parameters=Parametersimpl<IdentityValidator>;
