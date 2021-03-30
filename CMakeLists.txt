@@ -23,7 +23,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "MinSizeRel" "RelWithDebInfo")
 endif()
 # Add an executable
-add_executable(httpex main.cpp scurlholder.cpp shttputil.cpp smultipart_parser.cpp scurlclient.cpp shttpproxies.cpp shttperror.cpp scookies.cpp )
+add_executable(httpex nse.cpp scurlholder.cpp shttputil.cpp smultipart_parser.cpp scurlclient.cpp shttpproxies.cpp shttperror.cpp scookies.cpp )
 
 # link against the boost libraries
 target_link_libraries( httpex
