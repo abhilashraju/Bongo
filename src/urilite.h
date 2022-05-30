@@ -157,7 +157,7 @@ class uri {
       std::string sheme=s.substr(0,std::distance(begin(s),iter));
       return make_pair(sheme,sheme.length());
     }
-    throw invalid_argument("Nor url scheme found");
+    
     return std::make_pair("",0);
   }
   static uri parse(const std::string& s)
