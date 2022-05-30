@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-namespace Ui {
+namespace bongo {
 
 class Authentication {
   public:

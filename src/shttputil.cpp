@@ -10,13 +10,13 @@
 #include <string>
 #include <vector>
 
-namespace Ui {
+namespace bongo {
 namespace util {
 
 Cookies parseCookies(curl_slist* raw_cookies) {
     Cookies cookies;
     for (curl_slist* nc = raw_cookies; nc; nc = nc->next) {
-        std::vector<std::string> tokens = Ui::util::split(nc->data, '\t');
+        std::vector<std::string> tokens = bongo::util::split(nc->data, '\t');
         std::string value = tokens.back();
         tokens.pop_back();
         cookies[tokens.back()] = value;
@@ -162,4 +162,4 @@ std::string urlDecode(const std::string& s) {
 
 
 } // namespace util
-} // namespace Ui
+} // namespace bongo

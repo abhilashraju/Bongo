@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include "snetworktypes.h"
-namespace Ui{
+namespace bongo{
     struct Parameter {
         Parameter(const std::string& key, const std::string& value,const std::string& t=std::string(),bool ih=false)
                 : key{key}, value{value} ,type{t},inherit{ih}{}

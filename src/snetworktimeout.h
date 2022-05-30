@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 #include <cstdint>
-namespace Ui{
+namespace bongo{
 class Timeout {
   public:
     Timeout(const std::chrono::milliseconds& duration) : ms{duration} {}

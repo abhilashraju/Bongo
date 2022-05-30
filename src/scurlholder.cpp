@@ -1,7 +1,7 @@
 #include "scurlholder.h"
 #include <cassert>
 
-namespace Ui {
+namespace bongo {
 // It does not make sense to make a std::mutex const.
 // NOLINTNEXTLINE (cppcoreguidelines-avoid-non-const-global-variables)
 std::mutex CurlHolder::curl_easy_init_mutex_{};

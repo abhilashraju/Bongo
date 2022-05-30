@@ -2,7 +2,7 @@
 
 #include <curl/curl.h>
 
-namespace Ui {
+namespace bongo {
 
 ErrorCode Error::getErrorCodeForCurlError(std::int32_t curl_code) {
     switch (curl_code) {

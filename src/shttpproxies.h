@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-namespace Ui {
+namespace bongo {
 
 class Proxies {
   public:

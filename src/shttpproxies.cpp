@@ -5,7 +5,7 @@
 #include <string>
 #include <utility>
 
-namespace Ui {
+namespace bongo {
 
 Proxies::Proxies(const std::initializer_list<std::pair<const std::string, std::string>>& hosts)
         : hosts_{hosts} {}

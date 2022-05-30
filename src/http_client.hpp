@@ -18,7 +18,7 @@
 //------------------------------------------------------------------------------
 
 // Report a failure
-namespace Ui
+namespace bongo
 {
     inline std::string operator+(const std::string& first, boost::string_view second){
         return first + std::string{second.data(),second.length()};
@@ -120,11 +120,11 @@ namespace Ui
         {
             app_handler=std::move(handler);
         }
-        void SetOption(Ui::Port port)
+        void SetOption(bongo::Port port)
         {
             port_=std::move(port);
         }
-        void SetOption(Ui::Target t)
+        void SetOption(bongo::Target t)
         {
             target_=std::move(t);
         }
@@ -522,7 +522,7 @@ private:
 };
 // Overload the global make_error_code() free function with our
 // custom enum. It will be found via ADL by the compiler if needed.
-inline boost::system::error_code make_error_code(Ui::ErrorCode& e)
+inline boost::system::error_code make_error_code(bongo::ErrorCode& e)
 {
     return {static_cast<int>(e), ConversionErrc_category()};
 }
@@ -595,11 +595,11 @@ class shttp_curl_session:public std::enable_shared_from_this<shttp_curl_session>
     {
         app_handler=std::move(handler);
     }
-    void SetOption(Ui::Port port)
+    void SetOption(bongo::Port port)
     {
         port_=std::move(port);
     }
-    void SetOption(Ui::Target t)
+    void SetOption(bongo::Target t)
     {
         target_=std::move(t);
     }
@@ -685,11 +685,11 @@ template<typename SESSION,typename HEAD,typename... TAIL>
     template<typename... ARGS>
     auto http_get( const urilite::uri& remotepath, ARGS&&... args){
         auto qstr=remotepath.query_string();
-        auto targ= qstr.empty() ? Ui::Target{remotepath.path()}:Ui::Target{remotepath.path()+"?"+remotepath.query_string()};
+        auto targ= qstr.empty() ? bongo::Target{remotepath.path()}:bongo::Target{remotepath.path()+"?"+remotepath.query_string()};
         if(remotepath.secure()){
-           return  http_s_get(Ui::Url{remotepath.host()},Ui::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
+           return  http_s_get(bongo::Url{remotepath.host()},bongo::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
         }
-        http_get(Ui::Url{remotepath.host()},Ui::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
+        http_get(bongo::Url{remotepath.host()},bongo::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
     }
     inline auto update_query(const urilite::uri& remotepath){
         auto url = remotepath.host()+":"+std::to_string(remotepath.port())+remotepath.path();
@@ -704,14 +704,14 @@ template<typename SESSION,typename HEAD,typename... TAIL>
     auto http_curl_get( const urilite::uri& remotepath, ARGS&&... args){
         auto url = update_query(remotepath);
         auto session=std::make_shared<shttp_curl_session>(snetwork_scheduler::instance().ioc);
-        http_get_impl(session,Ui::VerifySsl(false),Ui::Url(url),std::forward<ARGS>(args)...);
+        http_get_impl(session,bongo::VerifySsl(false),bongo::Url(url),std::forward<ARGS>(args)...);
         session->get();
     }
     template<typename... ARGS>
     auto http_curl_post( const urilite::uri& remotepath, ARGS&&... args){
         auto url = update_query(remotepath);
         auto session=std::make_shared<shttp_curl_session>(snetwork_scheduler::instance().ioc);
-        http_get_impl(session,Ui::VerifySsl(false),Ui::Url(url),std::forward<ARGS>(args)...);
+        http_get_impl(session,bongo::VerifySsl(false),bongo::Url(url),std::forward<ARGS>(args)...);
         session->post();
     }
      template<typename Derived>
@@ -796,7 +796,7 @@ template<typename SESSION,typename HEAD,typename... TAIL>
     
 }
 template<typename Handler>
-inline auto make_ui_handler(Handler handler){
+inline auto make_bongo_handler(Handler handler){
    return [handler=std::move(handler)](beast::error_code ec, std::string data){
                 handler(std::move(ec),std::move(data));
         };

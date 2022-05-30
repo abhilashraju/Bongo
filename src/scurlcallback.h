@@ -3,7 +3,7 @@
 #include <functional>
 #include <utility>
 
-namespace Ui {
+namespace bongo {
 
 class ReadCallback {
   public:

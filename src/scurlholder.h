@@ -4,7 +4,7 @@
 #include <array>
 #include <curl/curl.h>
 
-namespace Ui {
+namespace bongo {
 
 struct CurlHolder {
   private:

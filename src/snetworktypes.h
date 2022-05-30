@@ -5,7 +5,7 @@
 #include <numeric>
 #include <chrono>
 #include "snetworktimeout.h"
-namespace Ui {
+namespace bongo {
 
 template <class T>
 class StringHolder {

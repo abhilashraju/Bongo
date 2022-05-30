@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace Ui {
+namespace bongo {
 
 struct File {
     explicit File(std::string&& filepath) : filepath(std::move(filepath)) {}

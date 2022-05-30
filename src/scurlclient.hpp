@@ -21,7 +21,7 @@
 #include "scurlholder.h"
 #include "shttperror.h"
 #include "shttputil.h"
-namespace Ui {
+namespace bongo {
 class Response {
   private:
     std::shared_ptr<CurlHolder> curl_{nullptr};
@@ -46,7 +46,7 @@ class Response {
                 Cookies&& p_cookies, Error&& p_error)
                 : curl_(std::move(curl)), text(std::move(p_text)), cookies(std::move(p_cookies)),
                     error(std::move(p_error)) {
-                header = Ui::util::parseHeader(p_header_string, &status_line, &reason);
+                header = bongo::util::parseHeader(p_header_string, &status_line, &reason);
                 assert(curl_);
                 assert(curl_->handle);
                 curl_easy_getinfo(curl_->handle, CURLINFO_RESPONSE_CODE, &status_code);
@@ -423,19 +423,19 @@ inline void SCurlSession::SetReadCallback(const ReadCallback& read) {
     readcb_ = read;
     curl_easy_setopt(curl_->handle, CURLOPT_INFILESIZE_LARGE, read.size);
     curl_easy_setopt(curl_->handle, CURLOPT_POSTFIELDSIZE_LARGE, read.size);
-    curl_easy_setopt(curl_->handle, CURLOPT_READFUNCTION, Ui::util::readUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_READFUNCTION, bongo::util::readUserFunction);
     curl_easy_setopt(curl_->handle, CURLOPT_READDATA, &readcb_);
     chunkedTransferEncoding = read.size == -1;
 }
 
 inline void SCurlSession::SetHeaderCallback(const HeaderCallback& header) {
-    curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, Ui::util::headerUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, bongo::util::headerUserFunction);
     headercb_ = header;
     curl_easy_setopt(curl_->handle, CURLOPT_HEADERDATA, &headercb_);
 }
 
 inline void SCurlSession::SetWriteCallback(const WriteCallback& write) {
-    curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, Ui::util::writeUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, bongo::util::writeUserFunction);
     writecb_ = write;
     curl_easy_setopt(curl_->handle, CURLOPT_WRITEDATA, &writecb_);
 }
@@ -443,17 +443,17 @@ inline void SCurlSession::SetWriteCallback(const WriteCallback& write) {
 inline void SCurlSession::SetProgressCallback(const ProgressCallback& progress) {
     progresscb_ = progress;
 #if LIBCURL_VERSION_NUM < 0x072000
-    curl_easy_setopt(curl_->handle, CURLOPT_PROGRESSFUNCTION, Ui::util::progressUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_PROGRESSFUNCTION, bongo::util::progressUserFunction);
     curl_easy_setopt(curl_->handle, CURLOPT_PROGRESSDATA, &progresscb_);
 #else
-    curl_easy_setopt(curl_->handle, CURLOPT_XFERINFOFUNCTION, Ui::util::progressUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_XFERINFOFUNCTION, bongo::util::progressUserFunction);
     curl_easy_setopt(curl_->handle, CURLOPT_XFERINFODATA, &progresscb_);
 #endif
     curl_easy_setopt(curl_->handle, CURLOPT_NOPROGRESS, 0L);
 }
 
 inline void SCurlSession::SetDebugCallback(const DebugCallback& debug) {
-    curl_easy_setopt(curl_->handle, CURLOPT_DEBUGFUNCTION, Ui::util::debugUserFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_DEBUGFUNCTION, bongo::util::debugUserFunction);
     debugcb_ = debug;
     curl_easy_setopt(curl_->handle, CURLOPT_DEBUGDATA, &debugcb_);
     curl_easy_setopt(curl_->handle, CURLOPT_VERBOSE, 1L);
@@ -555,7 +555,7 @@ inline Response SCurlSession::Download(const WriteCallback& write) {
 inline Response SCurlSession::Download(std::ofstream& file) {
     curl_easy_setopt(curl_->handle, CURLOPT_NOBODY, 0L);
     curl_easy_setopt(curl_->handle, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, Ui::util::writeFileFunction);
+    curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, bongo::util::writeFileFunction);
     curl_easy_setopt(curl_->handle, CURLOPT_WRITEDATA, &file);
 
     return makeDownloadRequest();
@@ -643,10 +643,10 @@ inline Response SCurlSession::makeDownloadRequest() {
 
     std::string header_string;
     if (headercb_.callback) {
-        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, Ui::util::headerUserFunction);
+        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, bongo::util::headerUserFunction);
         curl_easy_setopt(curl_->handle, CURLOPT_HEADERDATA, &headercb_);
     } else {
-        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, Ui::util::writeFunction);
+        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, bongo::util::writeFunction);
         curl_easy_setopt(curl_->handle, CURLOPT_HEADERDATA, &header_string);
     }
 
@@ -696,11 +696,11 @@ inline Response SCurlSession::makeRequest() {
     std::string response_string;
     std::string header_string;
     if (!this->writecb_.callback) {
-        curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, Ui::util::writeFunction);
+        curl_easy_setopt(curl_->handle, CURLOPT_WRITEFUNCTION, bongo::util::writeFunction);
         curl_easy_setopt(curl_->handle, CURLOPT_WRITEDATA, &response_string);
     }
     if (!this->headercb_.callback) {
-        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, Ui::util::writeFunction);
+        curl_easy_setopt(curl_->handle, CURLOPT_HEADERFUNCTION, bongo::util::writeFunction);
         curl_easy_setopt(curl_->handle, CURLOPT_HEADERDATA, &header_string);
     }
 

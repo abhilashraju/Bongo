@@ -1,6 +1,6 @@
 #include "scookies.h"
 
-namespace Ui {
+namespace bongo {
 std::string Cookies::GetEncoded(const CurlHolder& holder) const {
     std::stringstream stream;
     for (const auto& item : map_) {

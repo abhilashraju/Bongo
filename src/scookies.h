@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-namespace Ui {
+namespace bongo {
 
 class Cookies {
   public:

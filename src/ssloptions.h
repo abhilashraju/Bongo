@@ -61,7 +61,7 @@
 #define SUPPORT_SSL_FALSESTART __LIBCURL_VERSION_GTE(7, 42)
 #endif
 
-namespace Ui {
+namespace bongo {
 
 class VerifySsl {
   public:

@@ -12,7 +12,7 @@
 #ifdef OK
 #undef OK
 #endif
-namespace Ui {
+namespace bongo {
 
 enum class ErrorCode {
     OK = 0,
@@ -54,7 +54,7 @@ class Error {
     static ErrorCode getErrorCodeForCurlError(std::int32_t curl_code);
 };
 
-} // namespace Ui
+} // namespace bongo
 
 
 namespace boost
@@ -63,7 +63,7 @@ namespace boost
   {
     // Tell the C++ 11 STL metaprogramming that enum ConversionErrc
     // is registered with the standard error code system
-    template <> struct is_error_code_enum<Ui::ErrorCode> : std::true_type
+    template <> struct is_error_code_enum<bongo::ErrorCode> : std::true_type
     {
     };
   }  // namespace system
@@ -80,39 +80,39 @@ namespace detail
     // Return what each enum means in text
     virtual std::string message(int c) const override final
     {
-      switch(static_cast<Ui::ErrorCode>(c))
+      switch(static_cast<bongo::ErrorCode>(c))
       {
-      case Ui::ErrorCode::OK:
+      case bongo::ErrorCode::OK:
         return "success";
-      case Ui::ErrorCode::CONNECTION_FAILURE:
+      case bongo::ErrorCode::CONNECTION_FAILURE:
             return "case CONNECTION_FAILURE";
-      case Ui::ErrorCode::EMPTY_RESPONSE:
+      case bongo::ErrorCode::EMPTY_RESPONSE:
             return "case EMPTY_RESPONSE";
-      case Ui::ErrorCode::HOST_RESOLUTION_FAILURE:
+      case bongo::ErrorCode::HOST_RESOLUTION_FAILURE:
             return "case HOST_RESOLUTION_FAILURE";
-      case Ui::ErrorCode::INTERNAL_ERROR:
+      case bongo::ErrorCode::INTERNAL_ERROR:
             return "case INTERNAL_ERROR";
-      case Ui::ErrorCode::INVALID_URL_FORMAT:
+      case bongo::ErrorCode::INVALID_URL_FORMAT:
             return "case INVALID_URL_FORMAT";
-      case Ui::ErrorCode::NETWORK_RECEIVE_ERROR:
+      case bongo::ErrorCode::NETWORK_RECEIVE_ERROR:
             return "case NETWORK_RECEIVE_ERROR";
-      case Ui::ErrorCode::NETWORK_SEND_FAILURE:
+      case bongo::ErrorCode::NETWORK_SEND_FAILURE:
             return "case NETWORK_SEND_FAILURE";
-      case Ui::ErrorCode::OPERATION_TIMEDOUT:
+      case bongo::ErrorCode::OPERATION_TIMEDOUT:
             return "case OPERATION_TIMEDOUT";
-      case Ui::ErrorCode::PROXY_RESOLUTION_FAILURE:
+      case bongo::ErrorCode::PROXY_RESOLUTION_FAILURE:
             return "case PROXY_RESOLUTION_FAILURE";
-      case Ui::ErrorCode::SSL_CONNECT_ERROR:
+      case bongo::ErrorCode::SSL_CONNECT_ERROR:
             return "case SSL_CONNECT_ERROR";
-      case Ui::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR:
+      case bongo::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR:
             return "case SSL_LOCAL_CERTIFICATE_ERROR";
-      case Ui::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR:
+      case bongo::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR:
             return "case SSL_REMOTE_CERTIFICATE_ERROR";
-      case Ui::ErrorCode::SSL_CACERT_ERROR:
+      case bongo::ErrorCode::SSL_CACERT_ERROR:
             return "case SSL_CACERT_ERROR";
-      case Ui::ErrorCode::GENERIC_SSL_ERROR:
+      case bongo::ErrorCode::GENERIC_SSL_ERROR:
             return "case GENERIC_SSL_ERROR";
-      case Ui::ErrorCode::UNSUPPORTED_PROTOCOL:
+      case bongo::ErrorCode::UNSUPPORTED_PROTOCOL:
             return "case UNSUPPORTED_PROTOCOL";
       default:
         return "unknown";
@@ -121,13 +121,13 @@ namespace detail
     // OPTIONAL: Allow generic error conditions to be compared to me
     virtual boost::system::error_condition default_error_condition(int c) const noexcept override final
     {
-      switch(static_cast<Ui::ErrorCode>(c))
+      switch(static_cast<bongo::ErrorCode>(c))
       {
-      case Ui::ErrorCode::OK:
+      case bongo::ErrorCode::OK:
         return make_error_condition(boost::system::errc::invalid_argument);
-      case Ui::ErrorCode::CONNECTION_FAILURE:
+      case bongo::ErrorCode::CONNECTION_FAILURE:
         return make_error_condition(boost::system::errc::invalid_argument);
-      case Ui::ErrorCode::INVALID_URL_FORMAT:
+      case bongo::ErrorCode::INVALID_URL_FORMAT:
         return make_error_condition(boost::system::errc::result_out_of_range);
       default:
         // I have no mapping for this code

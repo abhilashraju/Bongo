@@ -8,7 +8,7 @@
 #include "scurlholder.h"
 #include "scurlcallback.h"
 #include "scookies.h"
-namespace Ui {
+namespace bongo {
 namespace util {
 
 HttpHeader parseHeader(const std::string& headers, std::string* status_line = nullptr,

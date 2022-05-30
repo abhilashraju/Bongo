@@ -2,7 +2,7 @@
 #include <utility>
 #include "snetworktypes.h"
 
-namespace Ui{
+namespace bongo{
     using Pair = std::pair<std::string, std::string>;
 
     template<typename Validator>

@@ -1,6 +1,6 @@
 #pragma once
 #include <cstdint>
-namespace Ui {
+namespace bongo {
 namespace status {
 // Information responses
 constexpr std::int32_t HTTP_CONTINUE = 100;
