@@ -14,8 +14,8 @@ bool Proxies::has(const std::string& protocol) const {
     return hosts_.count(protocol) > 0;
 }
 
-const std::string& Proxies::operator[](const std::string& protocol) {
-    return hosts_[protocol];
+const std::string& Proxies::operator[](const std::string& protocol) const{
+    return hosts_.at(protocol);
 }
 
 } // namespace cpr

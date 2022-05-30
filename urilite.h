@@ -40,13 +40,13 @@ namespace urilite {
 class PLUS : public boost::noncopyable {
  public:
   static const std::string space_encoded() { return "+"; };
-  static const char plus_decoded() { return ' '; };
+  static char plus_decoded() { return ' '; };
 };
 
 class NO_PLUS : public boost::noncopyable {
  public:
   static const std::string space_encoded() { return "%20"; };
-  static const char plus_decoded() { return '+'; };
+  static char plus_decoded() { return '+'; };
 };
 
 class RFC2396 : public boost::noncopyable {
@@ -151,6 +151,15 @@ class uri {
   }
 
   // support absoluteURI, net_path only
+ static  std::pair<std::string,size_t> check_scheme(const std::string& s){
+    auto iter= std::find(begin(s),end(s),':');
+    if(iter != end(s)){
+      std::string sheme=s.substr(0,std::distance(begin(s),iter));
+      return make_pair(sheme,sheme.length());
+    }
+    throw invalid_argument("Nor url scheme found");
+    return std::make_pair("",0);
+  }
   static uri parse(const std::string& s)
   {
     bool secure = false;
@@ -162,27 +171,37 @@ class uri {
       throw std::invalid_argument("uri is too short");
 
     // check scheme
-    if (!(*c == 'h' || *c == 'H'))
-      throw std::invalid_argument("invalid scheme");
-    ++c;
-    if (!(*c == 't' || *c == 'T'))
-      throw std::invalid_argument("invalid scheme");
-    ++c;
-    if (!(*c == 't' || *c == 'T'))
-      throw std::invalid_argument("invalid scheme");
-    ++c;
-    if (!(*c == 'p' || *c == 'P'))
-      throw std::invalid_argument("invalid scheme");
+    // if (!(*c == 'h' || *c == 'H'))
+    //   throw std::invalid_argument("invalid scheme");
+    // ++c;
+    // if (!(*c == 't' || *c == 'T'))
+    //   throw std::invalid_argument("invalid scheme");
+    // ++c;
+    // if (!(*c == 't' || *c == 'T'))
+    //   throw std::invalid_argument("invalid scheme");
+    // ++c;
+    // if (!(*c == 'p' || *c == 'P'))
+    //   throw std::invalid_argument("invalid scheme");
 
-    ++c;
-    if (*c == 's' || *c == 'S') {
-      secure = true;
-      ++c;
+    // ++c;
+    // if (*c == 's' || *c == 'S') {
+    //   secure = true;
+    //   ++c;
+    // }
+    // if (*c != ':')
+      // throw std::invalid_argument("invalid scheme");
+      // ++c;
+    auto sch =check_scheme(s);
+    std::vector<std::string> supported({"http","https","HTTP","HTTPS","app","APP"});
+    auto iter = std::find_if(begin(supported),end(supported),[&](auto v){ return (sch.second >0 && v == sch.first); });
+    if(iter == end(supported)){
+      throw std::invalid_argument("invalid scheme");
     }
-
-    if (*c != ':')
-      throw std::invalid_argument("invalid scheme");
-    ++c;
+    if(*iter=="https" || *iter=="HTTPS"){
+      secure = true;
+    }
+    c += iter->size()+1;
+   
     if (*c != '/')
       throw std::invalid_argument("invalid scheme");
     ++c;
@@ -261,7 +280,7 @@ class uri {
     os.str("");
     os.clear(std::stringstream::goodbit);
 
-    uri u(secure, host, port, path, fragment);
+    uri u(secure, host, port, path, fragment,sch.first);
 
     if (!query.empty()) {
 
@@ -307,19 +326,19 @@ class uri {
     query_.insert(std::make_pair(key, value));
   }
 
-  const bool secure() const {
+   bool secure() const {
     return secure_;
   }
 
   const std::string scheme() const {
-    return secure_ ? "https" : "http";
+    return scheme_;
   }
 
   const std::string host() const {
     return host_;
   }
 
-  const unsigned short port() const {
+   unsigned short port() const {
     return port_;
   }
 
@@ -388,18 +407,21 @@ class uri {
       const std::string& host, 
       unsigned short     port,
       const std::string& path,
-      const std::string& fragment)
+      const std::string& fragment,
+      const std::string& sche)
     : secure_(secure)
     , host_(host)
     , port_(port)
     , path_(path)
-    , fragment_(fragment) { }
+    , fragment_(fragment)
+    , scheme_{sche} { }
   bool           secure_;
   std::string    host_;
   unsigned short port_;
   std::string    path_;
   std::string    fragment_;
   query_params   query_;
+  std::string scheme_;
 }; // end of class
 
 inline std::ostream&

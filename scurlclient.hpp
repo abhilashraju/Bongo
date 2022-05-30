@@ -21,8 +21,6 @@
 #include "scurlholder.h"
 #include "shttperror.h"
 #include "shttputil.h"
-// #include "snetworktimeout.h"
-#include "snetworktypes.h"
 namespace Ui {
 class Response {
   private:
