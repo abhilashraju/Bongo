@@ -37,6 +37,8 @@ THE SOFTWARE.
 #include <boost/utility/string_view.hpp>
 namespace urilite {
 
+  
+
 class PLUS : public boost::noncopyable {
  public:
   static const std::string space_encoded() { return "+"; };
