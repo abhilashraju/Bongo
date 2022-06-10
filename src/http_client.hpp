@@ -520,12 +520,7 @@ private:
         // If we get here then the connection is closed gracefully
     }
 };
-// Overload the global make_error_code() free function with our
-// custom enum. It will be found via ADL by the compiler if needed.
-inline boost::system::error_code make_error_code(bongo::ErrorCode& e)
-{
-    return {static_cast<int>(e), ConversionErrc_category()};
-}
+
 class shttp_curl_session:public std::enable_shared_from_this<shttp_curl_session>
 {
     
@@ -691,15 +686,7 @@ template<typename SESSION,typename HEAD,typename... TAIL>
         }
         http_get(bongo::Url{remotepath.host()},bongo::Port(std::to_string(remotepath.port())),targ,std::forward<ARGS>(args)...);
     }
-    inline auto update_query(const urilite::uri& remotepath){
-        auto url = remotepath.host()+":"+std::to_string(remotepath.port())+remotepath.path();
-        auto qstr=remotepath.query_string();
-        url =qstr.empty() ? url : url+"?"+qstr;
-        if(!boost::string_view(url).starts_with("http")){
-            url =(remotepath.secure() ?"https://":"http://")+url;
-        }
-        return url;
-    }
+    
     template<typename... ARGS>
     auto http_curl_get( const urilite::uri& remotepath, ARGS&&... args){
         auto url = update_query(remotepath);
@@ -790,8 +777,8 @@ template<typename SESSION,typename HEAD,typename... TAIL>
         }
 
     };
-    using Get = Http_Get<false>;
-    using Post = Http_Post<false>;
+    using Get = Http_Get<true>;
+    using Post = Http_Post<true>;
     
     
 }

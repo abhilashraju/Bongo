@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project (bongo)
 
-# set the C++ standard to C++ 11
+# set the C++ standard to C++ 17
 set(CMAKE_CXX_STANDARD 17)
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "MinSizeRel" "RelWithDebInfo")
 endif()
 
-add_compile_options(-Wall -Wextra -pedantic -fconcepts) 
+add_compile_options(-O3 -Wall -Wextra -pedantic -fconcepts) 
 
 SET (PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 SET (PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
@@ -28,7 +28,8 @@ include_directories("
 
 # Add an executable
 add_executable(bongo 
-                ${PROJECT_EXAMPLES_DIR}/nse.cpp 
+                ${PROJECT_EXAMPLES_DIR}/bongo.cpp 
+                # ${PROJECT_EXAMPLES_DIR}/nse.cpp 
                 ${PROJECT_SOURCE_DIR}/scurlholder.cpp 
                 ${PROJECT_SOURCE_DIR}/shttputil.cpp 
                 ${PROJECT_SOURCE_DIR}/smultipart_parser.cpp 

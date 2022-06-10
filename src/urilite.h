@@ -34,7 +34,7 @@ THE SOFTWARE.
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/utility.hpp>
-
+#include <boost/utility/string_view.hpp>
 namespace urilite {
 
 class PLUS : public boost::noncopyable {
@@ -430,6 +430,15 @@ operator<<(std::ostream& os, const uri& u)
   os << u.str();
   return os;
 }
+inline auto update_query(const urilite::uri& remotepath){
+        auto url = remotepath.host()+":"+std::to_string(remotepath.port())+remotepath.path();
+        auto qstr=remotepath.query_string();
+        url =qstr.empty() ? url : url+"?"+qstr;
+        if(!boost::string_view(url).starts_with("http")){
+            url =(remotepath.secure() ?"https://":"http://")+url;
+        }
+        return url;
+    }
 
 }  // end of namespace
 

@@ -148,4 +148,13 @@ THIS_MODULE_API_DECL const detail::ConversionErrc_category &ConversionErrc_categ
 static detail::ConversionErrc_category c;
 return c;
 }
+namespace bongo{
+      // Overload the global make_error_code() free function with our
+      // custom enum. It will be found via ADL by the compiler if needed.
+      inline boost::system::error_code make_error_code(bongo::ErrorCode& e)
+      {
+      return {static_cast<int>(e), ConversionErrc_category()};
+      }
+
+}
 
