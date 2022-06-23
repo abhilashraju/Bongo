@@ -52,6 +52,46 @@ class Error {
 
   private:
     static ErrorCode getErrorCodeForCurlError(std::int32_t curl_code);
+  public:
+    static const char* getErrorMessage(ErrorCode code){
+           switch(code)
+            {
+            case bongo::ErrorCode::OK:
+            return "success";
+            case bongo::ErrorCode::CONNECTION_FAILURE:
+                  return "CONNECTION_FAILURE";
+            case bongo::ErrorCode::EMPTY_RESPONSE:
+                  return "EMPTY_RESPONSE";
+            case bongo::ErrorCode::HOST_RESOLUTION_FAILURE:
+                  return "HOST_RESOLUTION_FAILURE";
+            case bongo::ErrorCode::INTERNAL_ERROR:
+                  return "INTERNAL_ERROR";
+            case bongo::ErrorCode::INVALID_URL_FORMAT:
+                  return "INVALID_URL_FORMAT";
+            case bongo::ErrorCode::NETWORK_RECEIVE_ERROR:
+                  return "NETWORK_RECEIVE_ERROR";
+            case bongo::ErrorCode::NETWORK_SEND_FAILURE:
+                  return "NETWORK_SEND_FAILURE";
+            case bongo::ErrorCode::OPERATION_TIMEDOUT:
+                  return "OPERATION_TIMEDOUT";
+            case bongo::ErrorCode::PROXY_RESOLUTION_FAILURE:
+                  return "PROXY_RESOLUTION_FAILURE";
+            case bongo::ErrorCode::SSL_CONNECT_ERROR:
+                  return "SSL_CONNECT_ERROR";
+            case bongo::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR:
+                  return "SSL_LOCAL_CERTIFICATE_ERROR";
+            case bongo::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR:
+                  return "SSL_REMOTE_CERTIFICATE_ERROR";
+            case bongo::ErrorCode::SSL_CACERT_ERROR:
+                  return "SSL_CACERT_ERROR";
+            case bongo::ErrorCode::GENERIC_SSL_ERROR:
+                  return "GENERIC_SSL_ERROR";
+            case bongo::ErrorCode::UNSUPPORTED_PROTOCOL:
+                  return "UNSUPPORTED_PROTOCOL";
+            default:
+            return "unknown";
+            }
+    }
 };
 
 } // namespace bongo
@@ -80,43 +120,7 @@ namespace detail
     // Return what each enum means in text
     virtual std::string message(int c) const override final
     {
-      switch(static_cast<bongo::ErrorCode>(c))
-      {
-      case bongo::ErrorCode::OK:
-        return "success";
-      case bongo::ErrorCode::CONNECTION_FAILURE:
-            return "case CONNECTION_FAILURE";
-      case bongo::ErrorCode::EMPTY_RESPONSE:
-            return "case EMPTY_RESPONSE";
-      case bongo::ErrorCode::HOST_RESOLUTION_FAILURE:
-            return "case HOST_RESOLUTION_FAILURE";
-      case bongo::ErrorCode::INTERNAL_ERROR:
-            return "case INTERNAL_ERROR";
-      case bongo::ErrorCode::INVALID_URL_FORMAT:
-            return "case INVALID_URL_FORMAT";
-      case bongo::ErrorCode::NETWORK_RECEIVE_ERROR:
-            return "case NETWORK_RECEIVE_ERROR";
-      case bongo::ErrorCode::NETWORK_SEND_FAILURE:
-            return "case NETWORK_SEND_FAILURE";
-      case bongo::ErrorCode::OPERATION_TIMEDOUT:
-            return "case OPERATION_TIMEDOUT";
-      case bongo::ErrorCode::PROXY_RESOLUTION_FAILURE:
-            return "case PROXY_RESOLUTION_FAILURE";
-      case bongo::ErrorCode::SSL_CONNECT_ERROR:
-            return "case SSL_CONNECT_ERROR";
-      case bongo::ErrorCode::SSL_LOCAL_CERTIFICATE_ERROR:
-            return "case SSL_LOCAL_CERTIFICATE_ERROR";
-      case bongo::ErrorCode::SSL_REMOTE_CERTIFICATE_ERROR:
-            return "case SSL_REMOTE_CERTIFICATE_ERROR";
-      case bongo::ErrorCode::SSL_CACERT_ERROR:
-            return "case SSL_CACERT_ERROR";
-      case bongo::ErrorCode::GENERIC_SSL_ERROR:
-            return "case GENERIC_SSL_ERROR";
-      case bongo::ErrorCode::UNSUPPORTED_PROTOCOL:
-            return "case UNSUPPORTED_PROTOCOL";
-      default:
-        return "unknown";
-      }
+          return bongo::Error::getErrorMessage(static_cast<bongo::ErrorCode>(c));
     }
     // OPTIONAL: Allow generic error conditions to be compared to me
     virtual boost::system::error_condition default_error_condition(int c) const noexcept override final

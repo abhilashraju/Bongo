@@ -1,7 +1,7 @@
 #pragma once
 #include "scurlclient.hpp"
-#include "sender_reciever.hpp"
 #include "urilite.h"
+#include <unifex/then.hpp>
 namespace bongo{
 class CurlSession
 {
@@ -96,9 +96,36 @@ class CurlSession
         return curl_session_.Post();
        
     }
-    
-    
-    
-    
 };
+
+ struct HttpException:std::exception{
+        std::string message;
+        HttpException(std::string err):message(std::move(err)){}
+        const char* what() const noexcept override{
+            return message.data();
+        }
+    };
+    template<typename... Args>
+    struct get{
+        using Callback = std::function<Response()>;
+        Callback callback; 
+        get(std::string url, Args... args){
+            auto getcall = [](std::string url,auto... args){
+                urilite::uri remotepath =urilite::uri::parse(url);
+                bongo::CurlSession session;
+                auto resp=session.get(bongo::Url(urilite::update_query(remotepath)),
+                                    args...);
+                if(resp.error.code != ErrorCode::OK){
+                    throw HttpException{Error::getErrorMessage(resp.error.code)};
+                }
+                return resp;
+            };
+            callback = std::bind(getcall,std::move(url),std::forward<Args>(args)...);
+        }
+        template<typename Sender>
+        friend auto operator |(Sender sender, get getter){
+            return unifex::then(sender,[getter=std::move(getter)](){return getter.callback();}); 
+        }
+    };
+
 }
