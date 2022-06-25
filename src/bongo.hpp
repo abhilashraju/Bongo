@@ -2,6 +2,9 @@
 #include "scurlclient.hpp"
 #include "urilite.h"
 #include <unifex/then.hpp>
+#include <unifex/just.hpp>
+#include <unifex/let_error.hpp>
+
 namespace bongo{
 class CurlSession
 {
@@ -125,6 +128,22 @@ class CurlSession
         template<typename Sender>
         friend auto operator |(Sender sender, get getter){
             return unifex::then(sender,[getter=std::move(getter)](){return getter.callback();}); 
+        }
+    };
+    inline auto error_to_response(std::exception_ptr err) {
+    try {
+        std::rethrow_exception(err);
+    }catch (const std::exception& e) {
+        return unifex::just(std::string(e.what()));
+    }
+    }
+    template<typename Func>
+    struct upon_error{
+        Func callback; 
+        upon_error(Func func):callback(std::move(func)){}
+        template<typename Sender>
+        friend auto operator |(Sender sender, upon_error onerror){
+            return sender|unifex::let_error(error_to_response)|unifex::then([onerror=std::move(onerror)](auto v) {return onerror.callback(v);});
         }
     };
 

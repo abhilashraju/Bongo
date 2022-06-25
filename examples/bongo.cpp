@@ -8,12 +8,12 @@
 #include <unifex/when_all.hpp>
 #include <unifex/sync_wait.hpp>
 #include <unifex/just.hpp>
+#include <unifex/let_error.hpp>
+
 #include <iostream>
 
 using namespace bongo;
 using namespace unifex;
-
-
 
 int main(){
 
@@ -27,16 +27,14 @@ int main(){
                                                 bongo::ContentType{"application/json"})
                   |then([](auto v){return v.text;});
     auto graph2= schedule(sh)
-                  |get(std::string("https://www.yaheoo.com/"))
+                  |get(std::string("https://www.yahoo.com/"))
                   |then([](auto v){return v.text;});
     auto w = when_all(graph1,graph2);
-    auto i =w|then([](auto&& a,auto&& b){ return std::get<0>(std::get<0>(a)) + std::get<0>(std::get<0>(b));});
-    try{
-        auto t= sync_wait(std::move(i)).value();
-        std::printf("%s", t.data());
-    }catch(HttpException ex){
-         std::printf("%s", ex.what());
-    }
+    auto i =w|then([](auto&& a,auto&& b){ return std::get<0>(std::get<0>(a)) + std::get<0>(std::get<0>(b));})
+                |upon_error([](auto v){return v;});
+    auto t= sync_wait(std::move(i)).value();
+    std::printf("%s", t.data());
+   
     
     // ctx.finish();
     // ctx.join();
