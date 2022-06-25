@@ -27,11 +27,11 @@ int main(){
                                                 bongo::ContentType{"application/json"})
                   |then([](auto v){return v.text;});
     auto graph2= schedule(sh)
-                  |get(std::string("https://www.yahoo.com/"))
+                  |get(std::string("https://www.yahdoo.com/"))
                   |then([](auto v){return v.text;});
     auto w = when_all(graph1,graph2);
     auto i =w|then([](auto&& a,auto&& b){ return std::get<0>(std::get<0>(a)) + std::get<0>(std::get<0>(b));})
-                |upon_error([](auto v){return v;});
+                |upon_error([](auto v){return "error occured :" + v;});
     auto t= sync_wait(std::move(i)).value();
     std::printf("%s", t.data());
    
