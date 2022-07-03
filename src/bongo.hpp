@@ -163,9 +163,26 @@ class CurlSession
             return sender|unifex::let_error(error_to_response)|unifex::then([onerror=std::move(onerror)](auto v) {return onerror.callback(v);});
         }
     };
-  
+
     template<typename... T>
     inline auto get_all(T&&... ts){
         return std::make_tuple(std::get<0>(std::get<0>(ts))...);
     }
+   template <typename Func,std::size_t... Indices,typename... Args>
+    auto deliver_value(Func func,std::index_sequence<Indices...>,std::tuple<Args...> t) {
+        return func(std::get<Indices>(t)...);
+    }
+    template<typename Func>
+    struct then_all{
+      
+       Func callback; 
+       then_all(Func func):callback(std::move(func)){}
+        template<typename Sender>
+        friend auto operator |(Sender send,then_all t){
+                return send|unifex::then([=](auto... args){auto var=std::make_index_sequence<sizeof...(args)>{};auto res=get_all((decltype(args)&&)args...);  return deliver_value(t.callback,var,res);}); 
+        }
+       
+    };
+
+   
 }

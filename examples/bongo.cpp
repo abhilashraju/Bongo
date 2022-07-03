@@ -31,9 +31,9 @@ int main(){
                   |get(std::string("https://gorest.co.in/public/v2/posts"))
                   |then([](auto v){return v.text;});
     auto w = when_all(graph1,graph2);
-    auto i =w|then([](auto&& a,auto&& b){
-                auto [f,s]=get_all((decltype(a)&&)a,(decltype(b)&&)b);
-                return s;
+    auto i =w|then_all([](auto&& a,auto&& b){
+                
+                return a+b;
                 })
                 |upon_error([](auto v){
                     return v;
