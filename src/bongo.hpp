@@ -4,6 +4,7 @@
 #include <unifex/then.hpp>
 #include <unifex/just.hpp>
 #include <unifex/let_error.hpp>
+#include <unifex/when_all.hpp>
 
 namespace bongo{
 class CurlSession
@@ -87,16 +88,32 @@ class CurlSession
     // void SetOption(const bool& redirect);
     // void SetOption(const MaxRedirects& max_redirects);
     // void SetOption(const Cookies& cookies);
+
+    template<typename HttpFunc,typename... Args>
+    Response call_generic_http(HttpFunc func, Args... args){
+        using expandtype=int[];
+        expandtype{(SetOption(args),0)...};
+        return func();
+    }
     template<typename... ARGS>
     Response get(ARGS&&... args)
     { 
-        using expandtype=int[];
-        expandtype{(SetOption(args),0)...};
-        return curl_session_.Get();
+        // using expandtype=int[];
+        // expandtype{(SetOption(args),0)...};
+        // return curl_session_.Get();
+        return call_generic_http([&](){return curl_session_.Get();},((ARGS&&)(args))...);
     }
-    Response post()
-    {
-        return curl_session_.Post();
+    template<typename... ARGS>
+    Response post(ARGS&&... args)
+    { 
+         return call_generic_http([&](){return curl_session_.Post();},((ARGS&&)(args))...);
+       
+    }
+
+    template<typename... ARGS>
+    Response put(ARGS&&... args)
+    { 
+         return call_generic_http([&](){return curl_session_.Put();},((ARGS&&)(args))...);
        
     }
 };
@@ -146,5 +163,9 @@ class CurlSession
             return sender|unifex::let_error(error_to_response)|unifex::then([onerror=std::move(onerror)](auto v) {return onerror.callback(v);});
         }
     };
-
+  
+    template<typename... T>
+    inline auto get_all(T&&... ts){
+        return std::make_tuple(std::get<0>(std::get<0>(ts))...);
+    }
 }
