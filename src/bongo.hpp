@@ -168,18 +168,19 @@ class CurlSession
     inline auto get_all(T&&... ts){
         return std::make_tuple(std::get<0>(std::get<0>(ts))...);
     }
-   template <typename Func,std::size_t... Indices,typename... Args>
-    auto deliver_value(Func func,std::index_sequence<Indices...>,std::tuple<Args...> t) {
-        return func(std::get<Indices>(t)...);
-    }
+   
     template<typename Func>
     struct then_all{
       
        Func callback; 
        then_all(Func func):callback(std::move(func)){}
+       template <std::size_t... Indices,typename... Args>
+        auto deliver_value(std::index_sequence<Indices...>,std::tuple<Args...> t) const {
+            return callback(std::get<Indices>(t)...);
+        }
         template<typename Sender>
         friend auto operator |(Sender send,then_all t){
-                return send|unifex::then([=](auto... args){auto var=std::make_index_sequence<sizeof...(args)>{};auto res=get_all((decltype(args)&&)args...);  return deliver_value(t.callback,var,res);}); 
+                return send|unifex::then([=](auto... args){return t.deliver_value(std::make_index_sequence<sizeof...(args)>{},get_all((decltype(args)&&)args...));}); 
         }
        
     };
