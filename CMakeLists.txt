@@ -31,6 +31,7 @@ MESSAGE ("Binary path: ${PROJECT_BINARY_DIR}")
 include_directories(
     "${PROJECT_SOURCE_DIR}"  ,
     "${PROJECT_ROOT}/thirdparty/include"
+    "${PROJECT_ROOT}/thirdparty"
     )
 
 # Add an executable
