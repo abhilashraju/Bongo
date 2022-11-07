@@ -21,6 +21,7 @@
 #include "scurlholder.h"
 #include "shttperror.h"
 #include "shttputil.h"
+#include <memory>
 namespace bongo {
 class Response {
   private:

@@ -24,15 +24,18 @@ SET(PROJECT_EXAMPLES_DIR "${PROJECT_ROOT}/examples")
 # SET(PROJECT_BINARY_DIR "${PROJECT_BINARY_DIR}/bin")
 MESSAGE("Source path: ${PROJECT_SOURCE_DIR}")
 MESSAGE("Binary path: ${PROJECT_BINARY_DIR}")
+MESSAGE("Libunifex  : ${CONAN_INCLUDE_DIRS_LIBUNIFEX} ")
 
-set(UNIFEX_CXX_CONCEPTS OFF CACHE BOOL "Compile unit tests") # Configurable by user
+set(UNIFEX_CXX_CONCEPTS OFF CACHE BOOL " Compile unit tests ") # Configurable by user
 set(OTHER_CONSTANT OFF) # Not configurable by user
 configure_file(config.h.in config.h)
 
 include_directories(
-    "${PROJECT_SOURCE_DIR}" ,
-    "${CONAN_INCLUDE_DIRS}" ,
-    "${PROJECT_BINARY_DIR}"
+    " ${PROJECT_SOURCE_DIR} " ,
+    " ${CONAN_INCLUDE_DIRS} " ,
+    " ${PROJECT_BINARY_DIR} " ,
+    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} " ,
+    "/home/rabhil/.conan/data/libunifex/cci.20220430/_/_/package/13558dbc3d495e9231be308e4222af2a4b28bead/include"
 )
 
 # Add an executable
@@ -52,13 +55,14 @@ add_executable(bongo
 )
 
 link_directories(
-    "/usr/local/lib/"
-    "${CONAN_LIB_DIRS}"
+    " /usr/local/lib/ "
+    " ${CONAN_LIB_DIRS} "
 )
 
 # link against the boost libraries
 target_link_libraries(bongo
     PRIVATE
     pthread
-    ${CONAN_LIBS}
+    ${CONAN_LIBS_LIBUNIFEX}
+    ${CONAN_LIBS_LIBCURL}
 )
