@@ -73,8 +73,11 @@ RUN set -ex \
     && mkdir work \
     && cd work \
     && git clone https://github.com/abhilashraju/Bongo.git \
-    && cd Bingo\
-    && ./configure
+    && cd Bongo\
+    && chmod 777 configure\
+    && ./configure\
+    && make -j32 &>temp.txt;cat temp.txt|grep "error: "
+
 
 
 

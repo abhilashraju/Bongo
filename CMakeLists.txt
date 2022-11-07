@@ -30,7 +30,8 @@ configure_file(config.h.in config.h)
 
 include_directories(
     "${PROJECT_SOURCE_DIR}" ,
-    "${CONAN_INCLUDE_DIRS}"
+    "${CONAN_INCLUDE_DIRS}" ,
+    "${PROJECT_BINARY_DIR}"
 )
 
 # Add an executable
