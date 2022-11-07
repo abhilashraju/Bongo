@@ -8,6 +8,7 @@
 // https://www.boost.org/doc/libs/master/libs/beast/example/doc/http_examples.hpp An HTTP proxy acts
 // as a relay between client and server.
 
+#include"config.h"
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/beast.hpp>

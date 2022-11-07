@@ -1,3 +1,4 @@
+#include "config.h"
 #include "http_client.hpp"
 #include "bongo.hpp"
 int main()

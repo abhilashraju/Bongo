@@ -1,3 +1,4 @@
+#include"config.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/beast.hpp>
 #include <boost/beast/_experimental/test/stream.hpp>
