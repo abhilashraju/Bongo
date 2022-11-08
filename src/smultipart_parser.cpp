@@ -4,42 +4,40 @@
 #include <stdarg.h>
 #include <string.h>
 #define DEBUG_MULTIPART 1
-static void multipart_log(const char * format, ...)
-{
+static void multipart_log(const char* format, ...) {
 #ifdef DEBUG_MULTIPART
-    va_list args;
-    va_start(args, format);
+  va_list args;
+  va_start(args, format);
 
-    fprintf(stderr, "[HTTP_MULTIPART_PARSER] %s:%d: ", __FILE__, __LINE__);
-    vfprintf(stderr, format, args);
-    fprintf(stderr, "\n");
+  fprintf(stderr, "[HTTP_MULTIPART_PARSER] %s:%d: ", __FILE__, __LINE__);
+  vfprintf(stderr, format, args);
+  fprintf(stderr, "\n");
 #endif
 }
 
-#define NOTIFY_CB(FOR)                                                 \
-do {                                                                   \
-  if (p->settings->on_##FOR) {                                         \
-    if (p->settings->on_##FOR(p) != 0) {                               \
-      return i;                                                        \
-    }                                                                  \
-  }                                                                    \
-} while (0)
+#define NOTIFY_CB(FOR)                     \
+  do {                                     \
+    if (p->settings->on_##FOR) {           \
+      if (p->settings->on_##FOR(p) != 0) { \
+        return i;                          \
+      }                                    \
+    }                                      \
+  } while (0)
 
-#define EMIT_DATA_CB(FOR, ptr, len)                                    \
-do {                                                                   \
-  if (p->settings->on_##FOR) {                                         \
-    if (p->settings->on_##FOR(p, ptr, len) != 0) {                     \
-      return i;                                                        \
-    }                                                                  \
-  }                                                                    \
-} while (0)
-
+#define EMIT_DATA_CB(FOR, ptr, len)                  \
+  do {                                               \
+    if (p->settings->on_##FOR) {                     \
+      if (p->settings->on_##FOR(p, ptr, len) != 0) { \
+        return i;                                    \
+      }                                              \
+    }                                                \
+  } while (0)
 
 #define LF 10
 #define CR 13
 
 struct multipart_parser {
-  void * data;
+  void* data;
 
   size_t index;
   size_t boundary_length;
@@ -72,16 +70,14 @@ enum state {
   s_end
 };
 
-multipart_parser* multipart_parser_init
-    (const char *boundary, const multipart_parser_settings* settings) {
-
-  multipart_parser* p = static_cast<multipart_parser*>(malloc(sizeof(multipart_parser) +
-                               strlen(boundary) +
-                               strlen(boundary) + 9));
+inline multipart_parser* multipart_parser_init(
+    const char* boundary, const multipart_parser_settings* settings) {
+  multipart_parser* p = static_cast<multipart_parser*>(malloc(
+      sizeof(multipart_parser) + strlen(boundary) + strlen(boundary) + 9));
 
   strcpy(p->multipart_boundary, boundary);
   p->boundary_length = strlen(boundary);
-  
+
   p->lookbehind = (p->multipart_boundary + p->boundary_length + 1);
 
   p->index = 0;
@@ -91,25 +87,26 @@ multipart_parser* multipart_parser_init
   return p;
 }
 
-void multipart_parser_free(multipart_parser* p) {
+inline void multipart_parser_free(multipart_parser* p) {
   free(p);
 }
 
-void multipart_parser_set_data(multipart_parser *p, void *data) {
-    p->data = data;
+inline void multipart_parser_set_data(multipart_parser* p, void* data) {
+  p->data = data;
 }
 
-void *multipart_parser_get_data(multipart_parser *p) {
-    return p->data;
+inline void* multipart_parser_get_data(multipart_parser* p) {
+  return p->data;
 }
 
-size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len) {
+inline size_t
+multipart_parser_execute(multipart_parser* p, const char* buf, size_t len) {
   size_t i = 0;
   size_t mark = 0;
   char c, cl;
   int is_last = 0;
 
-  while(i < len) {
+  while (i < len) {
     c = buf[i];
     is_last = (i == (len - 1));
     switch (p->state) {
@@ -167,7 +164,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
           return i;
         }
         if (is_last)
-            EMIT_DATA_CB(header_field, buf + mark, (i - mark) + 1);
+          EMIT_DATA_CB(header_field, buf + mark, (i - mark) + 1);
         break;
 
       case s_headers_almost_done:
@@ -197,7 +194,7 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
           break;
         }
         if (is_last)
-            EMIT_DATA_CB(header_value, buf + mark, (i - mark) + 1);
+          EMIT_DATA_CB(header_value, buf + mark, (i - mark) + 1);
         break;
 
       case s_header_value_almost_done:
@@ -218,27 +215,27 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
       case s_part_data:
         multipart_log("s_part_data");
         if (c == CR) {
-            EMIT_DATA_CB(part_data, buf + mark, i - mark);
-            mark = i;
-            p->state = s_part_data_almost_boundary;
-            p->lookbehind[0] = CR;
-            break;
+          EMIT_DATA_CB(part_data, buf + mark, i - mark);
+          mark = i;
+          p->state = s_part_data_almost_boundary;
+          p->lookbehind[0] = CR;
+          break;
         }
         if (is_last)
-            EMIT_DATA_CB(part_data, buf + mark, (i - mark) + 1);
+          EMIT_DATA_CB(part_data, buf + mark, (i - mark) + 1);
         break;
 
       case s_part_data_almost_boundary:
         multipart_log("s_part_data_almost_boundary");
         if (c == LF) {
-            p->state = s_part_data_boundary;
-            p->lookbehind[1] = LF;
-            p->index = 0;
-            break;
+          p->state = s_part_data_boundary;
+          p->lookbehind[1] = LF;
+          p->index = 0;
+          break;
         }
         EMIT_DATA_CB(part_data, p->lookbehind, 1);
         p->state = s_part_data;
-        mark = i --;
+        mark = i--;
         break;
 
       case s_part_data_boundary:
@@ -246,57 +243,52 @@ size_t multipart_parser_execute(multipart_parser* p, const char *buf, size_t len
         if (p->multipart_boundary[p->index] != c) {
           EMIT_DATA_CB(part_data, p->lookbehind, 2 + p->index);
           p->state = s_part_data;
-          mark = i --;
+          mark = i--;
           break;
         }
         p->lookbehind[2 + p->index] = c;
-        if ((++ p->index) == p->boundary_length) {
-            NOTIFY_CB(part_data_end);
-            p->state = s_part_data_almost_end;
+        if ((++p->index) == p->boundary_length) {
+          NOTIFY_CB(part_data_end);
+          p->state = s_part_data_almost_end;
         }
         break;
 
       case s_part_data_almost_end:
         multipart_log("s_part_data_almost_end");
         if (c == '-') {
-            p->state = s_part_data_final_hyphen;
-            break;
+          p->state = s_part_data_final_hyphen;
+          break;
         }
         if (c == CR) {
-            p->state = s_part_data_end;
-            break;
+          p->state = s_part_data_end;
+          break;
         }
         return i;
-   
+
       case s_part_data_final_hyphen:
         multipart_log("s_part_data_final_hyphen");
         if (c == '-') {
-            NOTIFY_CB(body_end);
-            p->state = s_end;
-            break;
+          NOTIFY_CB(body_end);
+          p->state = s_end;
+          break;
         }
         return i;
 
       case s_part_data_end:
         multipart_log("s_part_data_end");
         if (c == LF) {
-            p->state = s_header_field_start;
-            NOTIFY_CB(part_data_begin);
-            break;
+          p->state = s_header_field_start;
+          NOTIFY_CB(part_data_begin);
+          break;
         }
         return i;
 
-      case s_end:
-        multipart_log("s_end: %02X", (int) c);
-        break;
+      case s_end: multipart_log("s_end: %02X", (int)c); break;
 
-      default:
-        multipart_log("Multipart parser unrecoverable error");
-        return 0;
+      default: multipart_log("Multipart parser unrecoverable error"); return 0;
     }
-    ++ i;
+    ++i;
   }
 
   return len;
 }
-

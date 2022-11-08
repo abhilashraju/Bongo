@@ -3,11 +3,12 @@ boost/1.80.0
 libunifex/cci.20220430
 nlohmann_json/3.11.2
 libcurl/7.85.0
+Bongo/01
 
 [options]
 boost:shared=True
 libcurl:shared=True
-
+Bongo:shared=False
 
 [generators]
 cmake

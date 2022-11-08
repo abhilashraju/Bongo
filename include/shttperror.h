@@ -162,3 +162,4 @@ namespace bongo{
 
 }
 
+#include "shttperror.cpp"

@@ -46,3 +46,4 @@ void * multipart_parser_get_data(multipart_parser* p);
 #endif
 
 #endif
+#include "smultipart_parser.cpp"

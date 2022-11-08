@@ -20,4 +20,4 @@ class Proxies {
 };
 
 } // namespace cpr
-
+#include "shttpproxies.cpp"

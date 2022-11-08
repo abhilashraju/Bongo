@@ -1,66 +1,27 @@
-cmake_minimum_required(VERSION 3.1)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-project(bongo)
 
-# set the C++ standard to C++ 17
+
+cmake_minimum_required(VERSION 3.15)
+
+# include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+project(Bongo CXX)
 set(CMAKE_CXX_STANDARD 17)
 
-# Set a default build type if none was specified
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    message("Setting build type to 'RelWithDebInfo' as none was specified.")
-    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build." FORCE)
+add_compile_options(-O0 -Wall -Wextra -pedantic -fconcepts -fPIC)
 
-    # Set the possible values of build type for cmake-gui
-    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release"
-        "MinSizeRel" "RelWithDebInfo")
-endif()
-
-add_compile_options(-O0 -Wall -Wextra -pedantic -fconcepts -fPIE)
-
-SET(PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
-SET(PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
-SET(PROJECT_EXAMPLES_DIR "${PROJECT_ROOT}/examples")
-
-# SET(PROJECT_BINARY_DIR "${PROJECT_BINARY_DIR}/bin")
-MESSAGE("Source path: ${PROJECT_SOURCE_DIR}")
-MESSAGE("Binary path: ${PROJECT_BINARY_DIR}")
-MESSAGE("Libunifex  : ${CONAN_INCLUDE_DIRS_LIBUNIFEX} ")
-
-set(UNIFEX_CXX_CONCEPTS OFF CACHE BOOL " Compile unit tests ") # Configurable by user
-set(OTHER_CONSTANT OFF) # Not configurable by user
-configure_file(config.h.in config.h)
-
-include_directories(
-    " ${PROJECT_SOURCE_DIR} " ,
-    " ${CONAN_INCLUDE_DIRS} " ,
-    " ${PROJECT_BINARY_DIR} " ,
-    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} "
-)
-
-# Add an executable
-add_executable(bongo
-
-    # ${PROJECT_EXAMPLES_DIR}/sender_reciever.cpp
-    ${PROJECT_EXAMPLES_DIR}/bongo.cpp
-
-    # ${PROJECT_EXAMPLES_DIR}/nse.cpp
-    ${PROJECT_SOURCE_DIR}/scurlholder.cpp
-    ${PROJECT_SOURCE_DIR}/shttputil.cpp
-    ${PROJECT_SOURCE_DIR}/smultipart_parser.cpp
-    ${PROJECT_SOURCE_DIR}/scurlclient.cpp
-    ${PROJECT_SOURCE_DIR}/shttpproxies.cpp
-    ${PROJECT_SOURCE_DIR}/shttperror.cpp
-    ${PROJECT_SOURCE_DIR}/scookies.cpp
-)
-
-link_directories(
-    "/usr/local/lib/"
-    "${PROJECT_BINARY_DIR}/bin"
-)
-
-target_link_libraries(bongo
-    PRIVATE
-    pthread
-    ${CONAN_LIBS_LIBCURL}
-    ${PROJECT_BINARY_DIR}/bin/libunifex.a
-)
+# add_library(Bongo
+# ${PROJECT_SOURCE_DIR}/src/scurlholder.cpp
+# ${PROJECT_SOURCE_DIR}/src/shttputil.cpp
+# ${PROJECT_SOURCE_DIR}/src/smultipart_parser.cpp
+# ${PROJECT_SOURCE_DIR}/src/scurlclient.cpp
+# ${PROJECT_SOURCE_DIR}/src/shttpproxies.cpp
+# ${PROJECT_SOURCE_DIR}/src/shttperror.cpp
+# ${PROJECT_SOURCE_DIR}/src/scookies.cpp
+# )
+# target_include_directories(Bongo PUBLIC include)
+# install(TARGETS Bongo)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
+    TYPE INCLUDE
+    PATTERN "*.in" EXCLUDE)
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/
+    TYPE INCLUDE
+    PATTERN "*.in" EXCLUDE)

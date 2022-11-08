@@ -7,15 +7,19 @@
 
 namespace bongo {
 
-Proxies::Proxies(const std::initializer_list<std::pair<const std::string, std::string>>& hosts)
-        : hosts_{hosts} {}
-
-bool Proxies::has(const std::string& protocol) const {
-    return hosts_.count(protocol) > 0;
+Proxies::Proxies(
+    const std::initializer_list<std::pair<const std::string, std::string>>&
+        hosts)
+  : hosts_{hosts} {
 }
 
-const std::string& Proxies::operator[](const std::string& protocol) const{
-    return hosts_.at(protocol);
+inline bool Proxies::has(const std::string& protocol) const {
+  return hosts_.count(protocol) > 0;
 }
 
-} // namespace cpr
+inline const std::string&
+Proxies::operator[](const std::string& protocol) const {
+  return hosts_.at(protocol);
+}
+
+}  // namespace bongo
