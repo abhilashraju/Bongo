@@ -15,7 +15,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         "MinSizeRel" "RelWithDebInfo")
 endif()
 
-add_compile_options(-O0 -Wall -Wextra -pedantic)
+add_compile_options(-O0 -Wall -Wextra -pedantic -fconcepts -fPIE)
 
 SET(PROJECT_ROOT "${PROJECT_SOURCE_DIR}")
 SET(PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}/src")
@@ -34,8 +34,8 @@ include_directories(
     " ${PROJECT_SOURCE_DIR} " ,
     " ${CONAN_INCLUDE_DIRS} " ,
     " ${PROJECT_BINARY_DIR} " ,
-    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} " ,
-    "/home/rabhil/.conan/data/libunifex/cci.20220430/_/_/package/13558dbc3d495e9231be308e4222af2a4b28bead/include"
+    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} " 
+   
 )
 
 # Add an executable
@@ -55,14 +55,13 @@ add_executable(bongo
 )
 
 link_directories(
-    " /usr/local/lib/ "
-    " ${CONAN_LIB_DIRS} "
+    "/usr/local/lib/"
+    "${CONAN_LIB_DIRS}"
 )
 
-# link against the boost libraries
 target_link_libraries(bongo
     PRIVATE
     pthread
-    ${CONAN_LIBS_LIBUNIFEX}
     ${CONAN_LIBS_LIBCURL}
-)
+    libunifex.a
+    )
