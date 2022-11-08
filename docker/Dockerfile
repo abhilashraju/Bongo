@@ -75,8 +75,8 @@ RUN set -ex \
     && git clone https://github.com/abhilashraju/Bongo.git \
     && cd Bongo\
     && chmod 777 configure\
-    && ./configure\
-    && make -j32 &>temp.txt;cat temp.txt|grep "error: "
+    && ./configure
+# && make -j32 &>temp.txt;cat temp.txt|grep "error: "
 
 
 
