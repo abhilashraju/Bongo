@@ -55,12 +55,12 @@ add_executable(bongo
 
 link_directories(
     "/usr/local/lib/"
-    ${PROJECT_BINARY_DIR/bin}
+    "${PROJECT_BINARY_DIR}/bin"
 )
 
 target_link_libraries(bongo
     PRIVATE
     pthread
     ${CONAN_LIBS_LIBCURL}
-    libunifex.a
+    ${PROJECT_BINARY_DIR}/bin/libunifex.a
 )
