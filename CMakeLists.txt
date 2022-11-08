@@ -34,8 +34,7 @@ include_directories(
     " ${PROJECT_SOURCE_DIR} " ,
     " ${CONAN_INCLUDE_DIRS} " ,
     " ${PROJECT_BINARY_DIR} " ,
-    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} " 
-   
+    " ${CONAN_INCLUDE_DIRS_LIBUNIFEX} "
 )
 
 # Add an executable
@@ -56,7 +55,7 @@ add_executable(bongo
 
 link_directories(
     "/usr/local/lib/"
-    "${CONAN_LIB_DIRS}"
+    ${PROJECT_BINARY_DIR/bin}
 )
 
 target_link_libraries(bongo
@@ -64,4 +63,4 @@ target_link_libraries(bongo
     pthread
     ${CONAN_LIBS_LIBCURL}
     libunifex.a
-    )
+)
