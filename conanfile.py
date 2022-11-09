@@ -15,8 +15,8 @@ class BongoConan(ConanFile):
 
     # Binary configuration
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False], "fPIC": [True, False]}
-    default_options = {"shared": True, "fPIC": True}
+    options = {"shared": [False, False], "fPIC": [False, False]}
+    default_options = {"shared": False, "fPIC": False}
 
     # Sources are located in the same place as this recipe, copy them to the recipe
     exports_sources = "CMakeLists.txt", "src/*", "include/*"
@@ -32,10 +32,10 @@ class BongoConan(ConanFile):
         tc = CMakeToolchain(self)
         tc.generate()
 
-    def build(self):
+    # def build(self):
         cmake = CMake(self)
         cmake.configure()
-        cmake.build()
+    #     cmake.build()
 
     def package(self):
         cmake = CMake(self)
@@ -43,5 +43,5 @@ class BongoConan(ConanFile):
         # self.copy("include/*.h")
         # self.copy("include/*.hpp")
         
-    def package_info(self):
-        self.cpp_info.libs = ["Bongo"]
+    # def package_info(self):
+    #     self.cpp_info.libs = ["Bongo"]
