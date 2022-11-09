@@ -21,14 +21,19 @@ int main() {
   static_thread_pool context;
   auto sh = context.get_scheduler();
 
-  auto graph1 = schedule(sh) |
-      get(std::string("https://gorest.co.in/public/v2/users"),
+  auto graph1 =
+      schedule(sh) |
+      bongo::process(
+          verb::get,
+          std::string("https://gorest.co.in/public/v2/users"),
           bongo::HttpHeader{
               {"Accept", "*/*"}, {"Accept-Language", "en-US,en;q=0.5"}},
           bongo::ContentType{"application/json"}) |
       then([](auto v) { return json::parse(v.text); });
   auto graph2 = schedule(sh) |
-      get(std::string("https://gorest.co.in/public/v2/posts")) |
+      bongo::process(
+                    verb::get,
+                    std::string("https://gorest.co.in/public/v2/posts")) |
       then([](auto v) { return json::parse(v.text); });
   auto w = when_all(graph1, graph2);
   auto i = w | then_all([](auto&& a, auto&& b) { return a.dump(4); }) |

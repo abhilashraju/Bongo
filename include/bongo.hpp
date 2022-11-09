@@ -91,27 +91,45 @@ struct HttpException : std::exception {
   HttpException(std::string err) : message(std::move(err)) {}
   const char* what() const noexcept override { return message.data(); }
 };
+enum class verb { get, post, put };
 template <typename... Args>
-struct get {
+struct process {
   using Callback = std::function<Response()>;
   Callback callback;
-  get(std::string url, Args... args) {
-    auto getcall = [](std::string url, auto... args) {
+  process(verb v, std::string url, Args... args) {
+    auto getcall = [](verb v, std::string url, auto... args) {
       urilite::uri remotepath = urilite::uri::parse(url);
       bongo::CurlSession session;
-      auto resp =
-          session.get(bongo::Url(urilite::update_query(remotepath)), args...);
+      auto resp = [&]() {
+        switch (v) {
+          case verb::get:
+            return session.get(
+                bongo::Url(urilite::update_query(remotepath)), args...);
+            break;
+          case verb::post:
+            return session.post(
+                bongo::Url(urilite::update_query(remotepath)), args...);
+            break;
+          case verb::put:
+            return session.put(
+                bongo::Url(urilite::update_query(remotepath)), args...);
+            break;
+        }
+        throw std::runtime_error("Invallid method");
+      }();
+
       if (resp.error.code != ErrorCode::OK) {
         throw HttpException{Error::getErrorMessage(resp.error.code)};
       }
       return resp;
     };
-    callback = std::bind(getcall, std::move(url), std::forward<Args>(args)...);
+    callback =
+        std::bind(getcall, v, std::move(url), std::forward<Args>(args)...);
   }
   template <typename Sender>
-  friend auto operator|(Sender sender, get getter) {
+  friend auto operator|(Sender sender, process ex) {
     return unifex::then(
-        sender, [getter = std::move(getter)]() { return getter.callback(); });
+        sender, [ex = std::move(ex)]() { return ex.callback(); });
   }
 };
 inline auto error_to_response(std::exception_ptr err) {
