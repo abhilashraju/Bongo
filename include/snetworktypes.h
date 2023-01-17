@@ -132,7 +132,7 @@ struct CaseInsensitiveCompare {
 struct IdentityValidator{
     std::string operator()(const std::string& v)const{return v;}
 };
-using HttpHeader = std::map<std::string, std::string, CaseInsensitiveCompare>;
+using HttpHeader = std::map<std::string, std::string>;
 
 class Body : public StringHolder<Body> {
   public:
