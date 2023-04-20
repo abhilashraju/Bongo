@@ -3,7 +3,7 @@ from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout
 
 
 class BongoConan(ConanFile):
-    name = "Bongo"
+    name = "bongo"
     version = "01"
 
     # Optional metadata
